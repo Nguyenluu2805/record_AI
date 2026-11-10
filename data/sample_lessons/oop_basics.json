@@ -1,0 +1,44 @@
+{
+  "lesson_id": "oop_01",
+  "title": "4 Tính chất cơ bản của Lập trình Hướng đối tượng (OOP)",
+  "subject": "Lập trình & Thiết kế Hướng đối tượng",
+  "key_concepts": [
+    {
+      "concept": "Tính Đóng gói (Encapsulation)",
+      "summary": "Che giấu dữ liệu bên trong đối tượng thông qua private/protected, chỉ cho phép truy cập qua getter/setter hoặc method công khai. Ngăn ngừa can thiệp dữ liệu ngoài ý muốn.",
+      "sample_questions": [
+        "Tính đóng gói trong OOP là gì và tại sao chúng ta lại cần nó?",
+        "Làm thế nào để áp dụng tính đóng gói trong code thực tế?"
+      ]
+    },
+    {
+      "concept": "Tính Kế thừa (Inheritance)",
+      "summary": "Cho phép class con tái sử dụng thuộc tính và phương thức từ class cha. Tránh lặp code và tạo mối quan hệ 'is-a'.",
+      "sample_questions": [
+        "Tính kế thừa mang lại lợi ích gì?",
+        "Khi nào thì không nên lạm dụng kế thừa?"
+      ]
+    },
+    {
+      "concept": "Tính Đa hình (Polymorphism)",
+      "summary": "Một hành vi có thể biểu diễn theo nhiều dạng khác nhau ở các lớp con. Thể hiện qua Method Overriding (ghi đè) và Method Overloading (nạp chồng).",
+      "sample_questions": [
+        "Em hiểu thế nào về tính đa hình? Hãy cho thầy một ví dụ thực tế.",
+        "Sự khác nhau giữa Overriding và Overloading là gì?"
+      ]
+    },
+    {
+      "concept": "Tính Trừu tượng (Abstraction)",
+      "summary": "Tập trung vào 'đối tượng làm được gì' (hành vi cốt lõi) thay vì 'làm như thế nào' (chi tiết triển khai cụ thể). Thực hiện qua Abstract Class hoặc Interface.",
+      "sample_questions": [
+        "Tính trừu tượng giúp ích gì cho việc thiết kế phần mềm lớn?",
+        "Interface và Abstract Class khác nhau như thế nào?"
+      ]
+    }
+  ],
+  "interview_goals": [
+    "Xác nhận sinh viên nắm vững định nghĩa 4 tính chất OOP.",
+    "Kiểm tra khả năng lấy ví dụ thực tế cho từng tính chất (đặc biệt là Đa hình và Trừu tượng).",
+    "Gợi mở và phân biệt được Interface vs Abstract Class."
+  ]
+}
