@@ -1,7 +1,7 @@
 /**
  * AudioRecorder - Quản lý thu âm 2 kênh (Micro + Âm thanh hệ thống) & Bóc tách Giọng nói
  * CÔNG TY CỔ PHẦN TẬP ĐOÀN KIM LONG PHÁT
- * Thiết kế tự phục hồi, chống ngắt mic khi im lặng và phản hồi tín hiệu thoại trực tiếp
+ * Thiết kế tự phục hồi tức thì, chống ngắt mic khi im lặng và nhả chữ thoại trực tiếp không độ trễ
  */
 
 class MeetingAudioRecorder {
@@ -23,10 +23,14 @@ class MeetingAudioRecorder {
         this.speechRecognitionActive = false;
         this.restartTimer = null;
         this.onTranscriptCallback = null;
-        this.onAudioChunkCallback = null;
         this.onStatusChange = null;
         this.onAudioLevelChange = null;
         this.visualizerAnimationId = null;
+        this.currentSpeaker = null;
+    }
+
+    setCurrentSpeaker(speaker) {
+        this.currentSpeaker = speaker;
     }
 
     _createSpeechRecognitionInstance() {
@@ -56,7 +60,7 @@ class MeetingAudioRecorder {
 
         sr.onstart = () => {
             this.speechRecognitionActive = true;
-            console.log('[STT] Web Speech API bắt đầu thu âm và nhận diện tiếng Việt.');
+            console.log('[STT] Web Speech API đang lắng nghe và nhận diện tiếng Việt.');
             if (this.onStatusChange) this.onStatusChange('active');
         };
 
@@ -75,6 +79,7 @@ class MeetingAudioRecorder {
 
             if (this.onTranscriptCallback) {
                 if (finalTranscript.trim()) {
+                    console.log('[STT Final Text]:', finalTranscript.trim());
                     this.onTranscriptCallback(finalTranscript.trim(), true);
                 } else if (interimTranscript.trim()) {
                     this.onTranscriptCallback(interimTranscript.trim(), false);
@@ -89,23 +94,19 @@ class MeetingAudioRecorder {
                 if (this.onStatusChange) this.onStatusChange('permission_denied');
             } else if (e.error === 'network') {
                 if (this.onStatusChange) this.onStatusChange('network_error');
-            } else if (e.error === 'no-speech') {
-                // Hết thời gian im lặng - onend sẽ tự động khởi động lại
             }
         };
 
         sr.onend = () => {
             this.speechRecognitionActive = false;
-            console.log('[STT] SpeechRecognition onend. isRecording:', this.isRecording, 'isPaused:', this.isPaused);
-
-            // Tự động khởi động lại một cách bền bỉ khi đang họp (chống tắt mic khi người nói tạm ngưng)
+            // Tự động khởi động lại ngay lập tức (50ms) để không bị ngắt quãng khi người nói tạm nghỉ
             if (this.isRecording && !this.isPaused && !this.permissionDenied) {
                 if (this.restartTimer) clearTimeout(this.restartTimer);
                 this.restartTimer = setTimeout(() => {
                     if (this.isRecording && !this.isPaused && !this.permissionDenied) {
                         this._startSpeechRecognition();
                     }
-                }, 250);
+                }, 50);
             }
         };
 
@@ -121,12 +122,12 @@ class MeetingAudioRecorder {
                 sr.start();
             }
         } catch (err) {
-            console.warn('[STT] Không thể start SpeechRecognition ngay, thử lại sau 800ms:', err);
+            console.warn('[STT] Thử khởi động lại SpeechRecognition:', err);
             if (this.isRecording && !this.isPaused && !this.permissionDenied) {
                 if (this.restartTimer) clearTimeout(this.restartTimer);
                 this.restartTimer = setTimeout(() => {
                     this._startSpeechRecognition();
-                }, 800);
+                }, 300);
             }
         }
     }
@@ -154,7 +155,7 @@ class MeetingAudioRecorder {
             const micSource = this.audioContext.createMediaStreamSource(this.micStream);
             micSource.connect(destination);
 
-            // 2. Nếu chọn Micro + Âm thanh hệ thống (Zoom/Google Meet)
+            // 2. Nếu chọn Micro + Âm thanh hệ thống
             if (sourceType === 'mic_system' && navigator.mediaDevices.getDisplayMedia) {
                 try {
                     this.systemStream = await navigator.mediaDevices.getDisplayMedia({
@@ -182,22 +183,23 @@ class MeetingAudioRecorder {
 
             this.recordedBlobs = [];
 
-            // 4. MediaRecorder để lưu trữ trọn vẹn tệp âm thanh buổi họp
-            const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
-            this.mediaRecorder = new MediaRecorder(this.mixedStream, { mimeType });
+            // 4. MediaRecorder để lưu trữ trọn vẹn tệp âm thanh buổi họp (.webm)
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                ? 'audio/webm;codecs=opus'
+                : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4');
 
-            this.mediaRecorder.ondataavailable = async (e) => {
-                if (e.data.size > 0) {
+            this.mediaRecorder = new MediaRecorder(this.mixedStream, { mimeType });
+            this.mediaRecorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) {
                     this.recordedBlobs.push(e.data);
                 }
             };
-
-            this.mediaRecorder.start(3000);
+            this.mediaRecorder.start(2000);
 
             this.isRecording = true;
             this.isPaused = false;
 
-            // 5. Khởi động Web Speech API bền bỉ
+            // 5. Khởi động Web Speech API nhả chữ trực tiếp tức thì
             this._startSpeechRecognition();
 
             return true;
@@ -240,19 +242,14 @@ class MeetingAudioRecorder {
             this.restartTimer = null;
         }
 
-        if (this.visualizerAnimationId) {
-            cancelAnimationFrame(this.visualizerAnimationId);
-            this.visualizerAnimationId = null;
-        }
-
         let finalBlob = null;
-        if (this.recordedBlobs && this.recordedBlobs.length > 0) {
-            const mime = (this.mediaRecorder && this.mediaRecorder.mimeType) || 'audio/webm';
-            finalBlob = new Blob(this.recordedBlobs, { type: mime });
-        }
-
         if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
             try { this.mediaRecorder.stop(); } catch (e) {}
+        }
+
+        if (this.recordedBlobs.length > 0) {
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+            finalBlob = new Blob(this.recordedBlobs, { type: mimeType });
         }
 
         if (this.micStream) {
@@ -287,59 +284,168 @@ class MeetingAudioRecorder {
 
     setupVisualizer(canvas, sourceNode) {
         if (!this.audioContext || !sourceNode || !canvas) return;
+        canvas.width = 76;
+        canvas.height = 20;
+
         const analyser = this.audioContext.createAnalyser();
-        analyser.fftSize = 64;
-        analyser.smoothingTimeConstant = 0.8;
+        analyser.fftSize = 128;
+        analyser.smoothingTimeConstant = 0.75;
         sourceNode.connect(analyser);
 
         const canvasCtx = canvas.getContext('2d');
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        const numBars = 15;
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
         const draw = () => {
             if (!this.isRecording) {
-                // Vẽ thanh phẳng khi nghỉ
-                canvasCtx.fillStyle = '#f8fafc';
-                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                // Trạng thái nghỉ: các vạch phẳng êm dịu ở giữa
+                canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+                const barW = 2.5;
+                const gap = 2.5;
+                const totalW = numBars * (barW + gap) - gap;
+                const startX = Math.max(0, (canvas.width - totalW) / 2);
                 canvasCtx.fillStyle = '#cbd5e1';
-                canvasCtx.fillRect(0, canvas.height / 2 - 1, canvas.width, 2);
+                for (let i = 0; i < numBars; i++) {
+                    const x = startX + i * (barW + gap);
+                    canvasCtx.fillRect(x, (canvas.height - 3) / 2, barW, 3);
+                }
                 return;
             }
             this.visualizerAnimationId = requestAnimationFrame(draw);
 
             analyser.getByteFrequencyData(dataArray);
 
-            // Tính toán mức âm lượng trung bình
+            // Tính năng lượng dải tần số giọng nói
             let sum = 0;
-            for (let i = 0; i < bufferLength; i++) {
+            const voiceBins = Math.min(32, dataArray.length);
+            for (let i = 0; i < voiceBins; i++) {
                 sum += dataArray[i];
             }
-            const avgVolume = sum / bufferLength;
+            const avgVolume = sum / voiceBins;
+
             if (this.onAudioLevelChange) {
                 this.onAudioLevelChange(avgVolume);
             }
 
-            canvasCtx.fillStyle = '#f8fafc';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const barWidth = Math.max(2, (canvas.width / bufferLength) * 1.4);
-            let x = 0;
+            const barW = 2.5;
+            const gap = 2.5;
+            const totalW = numBars * (barW + gap) - gap;
+            const startX = Math.max(0, (canvas.width - totalW) / 2);
+            const isSpeakingNow = avgVolume > 5;
 
-            for (let i = 0; i < bufferLength; i++) {
-                const barHeight = Math.max(2, (dataArray[i] / 255) * canvas.height);
-                // Đổi màu thanh sóng khi có tiếng nói người (> 10)
-                if (avgVolume > 10) {
-                    canvasCtx.fillStyle = '#2563eb';
-                } else {
-                    canvasCtx.fillStyle = '#94a3b8';
+            for (let i = 0; i < numBars; i++) {
+                const sampleIdx = Math.floor((i / numBars) * voiceBins);
+                const rawVal = dataArray[sampleIdx] || 0;
+
+                let barH = 3;
+                if (isSpeakingNow) {
+                    const norm = rawVal / 255;
+                    const waveFactor = 0.45 + 0.55 * Math.sin((i / (numBars - 1)) * Math.PI);
+                    barH = Math.max(4, norm * (canvas.height - 2) * waveFactor * 1.5);
+                    barH = Math.min(canvas.height - 2, barH);
                 }
-                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                x += barWidth + 1.5;
+
+                const x = startX + i * (barW + gap);
+                const y = (canvas.height - barH) / 2;
+
+                canvasCtx.fillStyle = isSpeakingNow ? '#10b981' : '#cbd5e1';
+
+                if (canvasCtx.roundRect) {
+                    canvasCtx.beginPath();
+                    canvasCtx.roundRect(x, y, barW, barH, 1.2);
+                    canvasCtx.fill();
+                } else {
+                    canvasCtx.fillRect(x, y, barW, barH);
+                }
             }
         };
 
         draw();
     }
+
+    // Mô phỏng sóng âm sinh động cho chế độ Demo khi đại biểu đang nói
+    startSimulation(canvas) {
+        if (!canvas) return;
+        canvas.width = 76;
+        canvas.height = 20;
+        const canvasCtx = canvas.getContext('2d');
+        const numBars = 15;
+        this.simulating = true;
+
+        if (this.simAnimationId) {
+            cancelAnimationFrame(this.simAnimationId);
+        }
+
+        let tick = 0;
+        const renderSim = () => {
+            if (!this.simulating) {
+                canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+                canvasCtx.fillStyle = '#cbd5e1';
+                const barW = 2.5;
+                const gap = 2.5;
+                const totalW = numBars * (barW + gap) - gap;
+                const startX = Math.max(0, (canvas.width - totalW) / 2);
+                for (let i = 0; i < numBars; i++) {
+                    const x = startX + i * (barW + gap);
+                    canvasCtx.fillRect(x, (canvas.height - 3) / 2, barW, 3);
+                }
+                return;
+            }
+
+            this.simAnimationId = requestAnimationFrame(renderSim);
+            tick += 0.18;
+
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+            const barW = 2.5;
+            const gap = 2.5;
+            const totalW = numBars * (barW + gap) - gap;
+            const startX = Math.max(0, (canvas.width - totalW) / 2);
+
+            for (let i = 0; i < numBars; i++) {
+                const waveFactor = 0.4 + 0.6 * Math.sin((i / (numBars - 1)) * Math.PI);
+                const waveMotion = Math.abs(Math.sin(tick + i * 0.5) * Math.cos(tick * 0.8 + i * 0.3));
+                const barH = Math.max(4, Math.min(canvas.height - 2, 4 + waveMotion * (canvas.height - 4) * waveFactor));
+                const x = startX + i * (barW + gap);
+                const y = (canvas.height - barH) / 2;
+
+                canvasCtx.fillStyle = '#10b981';
+                if (canvasCtx.roundRect) {
+                    canvasCtx.beginPath();
+                    canvasCtx.roundRect(x, y, barW, barH, 1.2);
+                    canvasCtx.fill();
+                } else {
+                    canvasCtx.fillRect(x, y, barW, barH);
+                }
+            }
+        };
+
+        renderSim();
+    }
+
+    stopSimulation(canvas) {
+        this.simulating = false;
+        if (this.simAnimationId) {
+            cancelAnimationFrame(this.simAnimationId);
+            this.simAnimationId = null;
+        }
+        if (canvas) {
+            const canvasCtx = canvas.getContext('2d');
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.fillStyle = '#cbd5e1';
+            const numBars = 15;
+            const barW = 2.5;
+            const gap = 2.5;
+            const totalW = numBars * (barW + gap) - gap;
+            const startX = Math.max(0, (canvas.width - totalW) / 2);
+            for (let i = 0; i < numBars; i++) {
+                const x = startX + i * (barW + gap);
+                canvasCtx.fillRect(x, (canvas.height - 3) / 2, barW, 3);
+            }
+        }
+    }
 }
 
+// Global instance
 window.meetingRecorder = new MeetingAudioRecorder();

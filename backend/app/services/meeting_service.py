@@ -302,7 +302,7 @@ class MeetingSession:
                             response_mime_type="application/json"
                         )
                     ),
-                    timeout=4.0
+                    timeout=12.0
                 )
                 if response.text:
                     cleaned_json = response.text.strip()

@@ -23,22 +23,21 @@
                     <p class="app-subtitle">Trợ lý thư ký doanh nghiệp · Phân tích &amp; biên bản họp tự động</p>
                 </div>
             </div>
-            <div class="header-actions">
-                <div class="connection-status" id="connectionStatus">
-                    <span class="status-dot online"></span>
-                    <span class="status-label">Hệ thống sẵn sàng</span>
-                </div>
-            </div>
-        </div>
-        
-        
-        <div class="main-mode-bar">
+            <div class="main-mode-bar">
             <button class="main-mode-btn active" id="btnModeMeeting">
                 <i class="fa-solid fa-users-rectangle"></i> Phòng họp · Thư ký &amp; Phân tích
             </button>
             <button class="main-mode-btn" id="btnModeRecorder">
                 <i class="fa-solid fa-microphone-lines"></i> Ghi âm nhanh · Speech-to-Text
             </button>
+        </div>
+
+            <div class="header-actions">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot online"></span>
+                    <span class="status-label">Hệ thống sẵn sàng</span>
+                </div>
+            </div>
         </div>
 
         
@@ -209,7 +208,7 @@ Quý Thư ký có thể chỉnh sửa trực tiếp nội dung bất cứ lúc n
 
                 <div class="setup-grid">
                     
-                    <div class="form-group full-width">
+                    <div class="form-group" id="groupMeetingMode">
                         <label class="section-label">Chế độ Biên bản Cuộc họp:</label>
                         <div class="mode-selector">
                             <label class="mode-card active" id="modeOption1">
@@ -234,7 +233,7 @@ Quý Thư ký có thể chỉnh sửa trực tiếp nội dung bất cứ lúc n
                     </div>
 
                     
-                    <div class="form-group full-width">
+                    <div class="form-group" id="groupAudioSource">
                         <label class="section-label">Nguồn Thu Âm:</label>
                         <div class="audio-source-selector">
                             <label class="source-card active" id="sourceMicOnly">
@@ -382,7 +381,7 @@ Quý Thư ký có thể chỉnh sửa trực tiếp nội dung bất cứ lúc n
                         <span id="meetingTimer">00:00:00</span>
                     </div>
                     <div class="audio-waveform-box">
-                        <canvas id="waveformCanvas" width="120" height="26"></canvas>
+                        <canvas id="waveformCanvas" width="76" height="20"></canvas></canvas>
                         <span class="rec-dot" id="recDot"></span>
                         <span id="audioSourceText">Micro Bật</span>
                     </div>

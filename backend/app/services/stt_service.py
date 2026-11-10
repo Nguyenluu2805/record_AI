@@ -110,7 +110,7 @@ Tuyệt đối KHÔNG tự đoán tên người nói, KHÔNG thêm chú thích n
                 ],
                 config=types.GenerateContentConfig(
                     temperature=0.0,
-                    max_output_tokens=150
+                    max_output_tokens=500
                 )
             )
 

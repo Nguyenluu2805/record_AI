@@ -7,10 +7,10 @@ class Settings:
     COMPANY_NAME: str = "CÔNG TY CỔ PHẦN TẬP ĐOÀN KIM LONG PHÁT"
     COMPANY_SHORT: str = "KIM LONG PHÁT GROUP"
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
     
     SERVER_HOST: str = os.getenv("SERVER_HOST", "0.0.0.0")
-    SERVER_PORT: int = int(os.getenv("SERVER_PORT", "8000"))
+    SERVER_PORT: int = int(os.getenv("PORT", os.getenv("SERVER_PORT", "8000")))
     
     # Audio config
     INPUT_SAMPLE_RATE: int = 16000

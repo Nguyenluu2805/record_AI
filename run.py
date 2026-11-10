@@ -21,9 +21,10 @@ if __name__ == "__main__":
     print(f"  BOT AI TRỢ LÝ THƯ KÝ GHI ÂM - PHÂN TÍCH CUỘC HỌP THỜI GIAN THỰC")
     print(f"  Hệ thống đang chạy tại: http://localhost:{settings.SERVER_PORT}")
     print(f"============================================================")
+    port = int(os.getenv("PORT", settings.SERVER_PORT))
     uvicorn.run(
         "app.main:app",
-        host=settings.SERVER_HOST,
-        port=settings.SERVER_PORT,
+        host="0.0.0.0",
+        port=port,
         reload=False
     )

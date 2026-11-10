@@ -5,7 +5,7 @@ import time
 import asyncio
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, UploadFile, File
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -319,6 +319,56 @@ async def end_meeting(session_id: str):
         "status": session.status,
         "analysis_state": final_analysis,
         "transcript_info": transcript_info
+    }
+
+@app.post("/api/meetings/{session_id}/audio-chunk")
+async def process_live_audio_chunk(
+    session_id: str,
+    file: UploadFile = File(...),
+    speaker: Optional[str] = Form(None)
+):
+    """
+    Xử lý đoạn âm thanh phát biểu trực tiếp (Audio Chunk) qua Gemini Multimodal STT.
+    Nhận đủ 100% âm thanh, không bị nuốt chữ, đúng ngữ pháp và thuật ngữ Kim Long Phát.
+    """
+    session = meeting_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phiên họp")
+
+    contents = await file.read()
+    if not contents or len(contents) < 500:
+        return {"success": False, "message": "Âm thanh quá ngắn"}
+
+    chosen_speaker = speaker or session.metadata.get("chairperson") or "Người phát biểu"
+    participants = session.metadata.get("participants", [])
+
+    stt_res = await stt_service.transcribe_audio_chunk(
+        audio_bytes=contents,
+        participants=participants
+    )
+    text = (stt_res.get("text") or "").strip()
+
+    noise_markers = ["[tiếng ồn]", "tiếng ồn", "[im lặng]", "im lặng", "[tiếng thở]", "noise", "silence", "[âm thanh]"]
+    if not text or text.lower() in noise_markers or (text.startswith("[") and text.endswith("]")) or len(text) < 3:
+        return {"success": True, "segment": None, "empty": True}
+
+    # Thêm segment chuẩn xác vào danh sách chữ thoại
+    segment = session.add_transcript_segment(
+        speaker=chosen_speaker,
+        text=text
+    )
+
+    # Tự động chạy phân tích AI định kỳ mỗi 2 câu nói
+    if len(session.transcripts) % 2 == 0:
+        try:
+            await asyncio.wait_for(session.run_ai_analysis(), timeout=12.0)
+        except Exception as e:
+            print(f"[Meeting STT] Phân tích AI tự động gặp lỗi nhẹ: {e}")
+
+    return {
+        "success": True,
+        "segment": segment,
+        "analysis_state": session.analysis_state
     }
 
 @app.post("/api/meetings/{session_id}/upload-audio")

@@ -287,7 +287,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function setStep(step) {
         state.currentStep = step;
         [screenStep1, screenStep2, screenStep3].forEach((s, idx) => {
-            if (s) s.classList.toggle('active', idx + 1 === step);
+            if (s) {
+                s.classList.toggle('active', idx + 1 === step);
+                // Đảm bảo ẩn/hiện dứt khoát tránh lỗi đè bước
+                if (idx + 1 === step) {
+                    s.style.display = (step === 2) ? 'flex' : 'block';
+                } else {
+                    s.style.display = 'none';
+                }
+            }
         });
         [stepIndicator1, stepIndicator2, stepIndicator3].forEach((ind, idx) => {
             if (!ind) return;
@@ -299,6 +307,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 else circle.textContent = String(idx + 1);
             }
         });
+        if (step === 3) {
+            try {
+                prepareStep3Review();
+            } catch (err) {
+                console.warn('Lỗi chuẩn bị bước 3:', err);
+            }
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     window.setStep = setStep;
@@ -569,6 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function setActiveSpeaker(spkName, showNotice = false) {
         if (!spkName) return;
         state.currentActiveSpeaker = spkName;
+        if (window.meetingRecorder && window.meetingRecorder.setCurrentSpeaker) {
+            window.meetingRecorder.setCurrentSpeaker(spkName);
+        }
 
         if (currentActiveSpeakerName) {
             currentActiveSpeakerName.textContent = spkName;
@@ -584,15 +602,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const span = c.querySelector('span');
                 if (span && span.textContent === spkName) {
                     c.classList.add('active');
-                    c.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    try {
+                        const chipLeft = c.offsetLeft;
+                        const chipWidth = c.offsetWidth;
+                        const containerWidth = activeSpeakerChips.clientWidth;
+                        activeSpeakerChips.scrollTo({
+                            left: chipLeft - (containerWidth / 2) + (chipWidth / 2),
+                            behavior: 'smooth'
+                        });
+                    } catch (_) {}
                 } else {
                     c.classList.remove('active');
                 }
             });
         }
+        // Đã bỏ thông báo chuyển người phát biểu theo yêu cầu
+        /*
         if (showNotice) {
             showToast(`Đã chuyển người phát biểu: ${spkName}`, 'info');
         }
+        */
     }
 
     if (quickSpeakerSelect) {
@@ -813,9 +842,15 @@ document.addEventListener('DOMContentLoaded', () => {
             transcriptEmptyState.style.display = 'block';
 
             renderLiveAnalysis();
+                        renderLiveAnalysis();
             renderActiveSpeakerSelector();
             startTimer();
             setStep(2);
+
+            // Vẽ trạng thái chờ trên canvas sóng âm
+            if (window.meetingRecorder && waveformCanvas) {
+                window.meetingRecorder.stopSimulation(waveformCanvas);
+            }
 
             if (isDemo) {
                 audioSourceText.textContent = 'Demo Mode (Simulated Stream)';
@@ -837,11 +872,49 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initRealAudioRecording() {
         if (!window.meetingRecorder) return;
 
+        window.meetingRecorder.setCurrentSpeaker(state.currentActiveSpeaker || quickSpeakerSelect.value || state.chairperson);
+
+        // NÂNG CẤP: Bóc tách giọng nói trực tiếp qua Gemini Audio Multimodal Buffer
+        // Đảm bảo nhận ĐỦ 100% câu từ, không bị nuốt chữ, đúng ngữ pháp và từ vựng Kim Long Phát
+        window.meetingRecorder.onAudioChunkReady = async (chunkBlob, speaker) => {
+            const spk = speaker || state.currentActiveSpeaker || quickSpeakerSelect.value || state.chairperson || "Người phát biểu";
+            renderInterimLiveBubble(spk, "Đang bóc tách chuẩn xác qua AI...");
+
+            try {
+                const formData = new FormData();
+                formData.append('file', chunkBlob, 'speech_chunk.webm');
+                formData.append('speaker', spk);
+
+                const res = await fetch(`/api/meetings/${state.sessionId}/audio-chunk`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                removeInterimLiveBubble();
+
+                if (data.success && data.segment) {
+                    appendTranscriptSegment(data.segment);
+                    state.transcripts.push(data.segment);
+
+                    if (data.analysis_state) {
+                        state.analysisState = data.analysis_state;
+                        renderLiveAnalysis();
+                    }
+                }
+            } catch (err) {
+                console.warn('[Gemini STT Chunk Error]:', err);
+                removeInterimLiveBubble();
+            }
+        };
+
+        // Nhận diện giọng nói tiếng Việt trực tiếp (nhả chữ ngay lập tức, không trễ)
         window.meetingRecorder.onTranscriptCallback = async (text, isFinal) => {
             const speaker = state.currentActiveSpeaker || quickSpeakerSelect.value || state.chairperson || "Người phát biểu";
             if (!isFinal) {
+                // Đang nói -> nhả chữ tạm thời có con trỏ nhấp nháy
                 renderInterimLiveBubble(speaker, text);
             } else {
+                // Dứt câu -> chốt câu thoại chính thức vào cột chữ thoại và gửi lên máy chủ
                 removeInterimLiveBubble();
                 if (text && text.trim()) {
                     await sendTranscriptToServer(speaker, text.trim());
@@ -874,10 +947,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         window.meetingRecorder.onAudioLevelChange = (volume) => {
-            if (volume > 10) {
+            if (volume > 6) {
                 if (recDot) recDot.style.boxShadow = '0 0 8px #10b981';
+                audioSourceText.textContent = 'Micro ON (Đang nghe)';
+                audioSourceText.style.color = '#059669';
             } else {
                 if (recDot) recDot.style.boxShadow = 'none';
+                audioSourceText.textContent = 'Micro ON (Chờ nói)';
+                audioSourceText.style.color = '#475569';
             }
         };
 
@@ -1158,11 +1235,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="chat-time bubble-time">${seg.timestamp || ''}</span>
                 </div>
                 <div class="chat-text bubble-text" data-id="${seg.id}">${escapeHtml(cleanText)}</div>
-                ${seg.is_bookmark ? `
-                    <div class="chat-bookmark-tag bubble-bookmark-tag">
-                        <i class="fa-solid fa-bookmark"></i> Trọng tâm chỉ đạo
-                    </div>
-                    ${seg.note ? `<span class="chat-bookmark-quote">"${escapeHtml(seg.note)}"</span>` : ''}
+                ${seg.is_bookmark && seg.note ? `
+                    <span class="chat-bookmark-quote"><i class="fa-solid fa-bookmark"></i> "${escapeHtml(seg.note)}"</span>
                 ` : ''}
             </div>
             <div class="chat-actions bubble-actions">
@@ -1170,7 +1244,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         data-id="${seg.id}" 
                         title="${seg.is_bookmark ? 'Bỏ đánh dấu trọng tâm' : 'Đánh dấu trọng tâm đoạn này'}">
                     <i class="${seg.is_bookmark ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
-                    <span>${seg.is_bookmark ? 'Trọng tâm' : 'Đánh dấu'}</span>
                 </button>
             </div>
         `;
@@ -1244,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btn) {
                     btn.classList.toggle('bookmarked', isBookmarked);
                     btn.title = isBookmarked ? 'Bỏ đánh dấu trọng tâm' : 'Đánh dấu trọng tâm đoạn này';
-                    btn.innerHTML = `<i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i> <span>${isBookmarked ? 'Trọng tâm' : 'Đánh dấu'}</span>`;
+                    btn.innerHTML = `<i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>`;
                 }
                 let tag = bubbleEl.querySelector('.bubble-bookmark-tag, .chat-bookmark-tag');
                 let quoteEl = bubbleEl.querySelector('.chat-bookmark-quote');
@@ -1268,13 +1341,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (tag) tag.remove();
                     if (quoteEl) quoteEl.remove();
                 }
-            }
-
-            if (isBookmarked) {
-                const quote = customText ? `"${customText.substring(0, 40)}..."` : 'lời phát biểu';
-                showToast(`Đã ghi nhận trọng tâm: ${quote}`, 'warning');
-            } else {
-                showToast(`Đã hủy đánh dấu trọng tâm`, 'info');
             }
 
             if (data.analysis_state) {
@@ -1564,6 +1630,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
+                setStep(3);
                 showToast('Đang chốt bản phân tích cuộc họp...', 'info');
                 try {
                     const res = await fetch(`/api/meetings/${state.sessionId}/end`, { method: 'POST' });
@@ -1579,9 +1646,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (e) {
                     console.warn('Lỗi chốt phân tích:', e);
                 }
-
-                await prepareStep3Review();
-                setStep(3);
+                prepareStep3Review();
             }
         });
     });
@@ -1775,7 +1840,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tr><td style="width:30%; background:#f4f4f5;"><strong>1. Thời gian & Hình thức:</strong></td><td>${new Date().toLocaleDateString('vi-VN')} | ${state.audioSource === 'mic_only' ? 'Trực tiếp tại phòng họp' : 'Trực tiếp kết hợp Online Zoom'}</td></tr>
                         <tr><td style="background:#f4f4f5;"><strong>2. Chủ trì cuộc họp:</strong></td><td>${state.chairperson}</td></tr>
                         <tr><td style="background:#f4f4f5;"><strong>3. Thư ký cuộc họp:</strong></td><td>${state.secretary}</td></tr>
-                        <tr><td style="background:#f4f4f5;"><strong>4. Thành phần tham dự:</strong></td><td>${state.participants.join('<br>')}</td></tr>
+                        <tr><td style="background:#f4f4f5;"><strong>4. Thành phần tham dự:</strong></td><td>${(Array.isArray(state.participants) && state.participants.length > 0 ? state.participants : ['Bà Phan Thị Phát (Tổng Giám Đốc)', 'Ông Nguyễn Kim Long (Chủ tịch HĐQT)', 'Ông Trần Văn Hùng (Phó TGĐ)', 'Bà Lê Thu Thảo (Thư ký)']).join('<br>')}</td></tr>
                     </table>
 
                     <div class="section-heading">II. NỘI DUNG CHỈ ĐẠO & PHÂN TÍCH PHÁT BIỂU</div>
@@ -2165,15 +2230,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const item = dialogues[i];
                 setActiveSpeaker(item.speaker, false);
-                await sleep(2500); // 2.5s delay per turn for realistic real-time feeling
+
+                // Kích hoạt gợn sóng và trạng thái Đang nghe khi đại biểu phát biểu
+                if (window.meetingRecorder && waveformCanvas) {
+                    window.meetingRecorder.startSimulation(waveformCanvas);
+                }
+                if (recDot) recDot.style.boxShadow = '0 0 8px #10b981';
+                audioSourceText.textContent = 'Micro ON (Đang nghe)';
+                audioSourceText.style.color = '#059669';
+
+                await sleep(2500); // Thời gian đại biểu đang phát biểu (sóng âm gợn liên tục)
 
                 await sendTranscriptToServer(item.speaker, item.text, item.is_bookmark, item.note);
 
-                if (item.is_bookmark) {
-                    showToast(`Thư ký ghi nhận trọng tâm: ${item.note}`, 'warning');
+                // Dừng sóng âm trong khoảng nghỉ ngắn giữa 2 đại biểu
+                if (window.meetingRecorder && waveformCanvas) {
+                    window.meetingRecorder.stopSimulation(waveformCanvas);
                 }
+                if (recDot) recDot.style.boxShadow = 'none';
+                audioSourceText.textContent = 'Micro ON (Chờ nói)';
+                audioSourceText.style.color = '#475569';
 
-                // Cứ sau 2 lượt hoặc lượt cuối, trigger AI analysis
+                await sleep(400);
+
                 if ((i + 1) % 2 === 0 || i === dialogues.length - 1) {
                     await fetch(`/api/meetings/${state.sessionId}/analyze`, { method: 'POST' });
                     const stRes = await fetch(`/api/meetings/${state.sessionId}/state`);

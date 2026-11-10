@@ -26,7 +26,7 @@ input,select,textarea{font:inherit;color:var(--ink)}
 
 /* ---------- Header ---------- */
 .app-header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.header-container{max-width:1200px;margin:0 auto;padding:14px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.header-container{max-width:min(97vw, 1720px);margin:0 auto;padding:14px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
 .brand-info{display:flex;gap:12px;align-items:center;min-width:0}
 .brand-logo{width:44px;height:44px;flex:none;border-radius:11px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:750;font-size:15px;letter-spacing:.04em}
 .brand-logo::after{content:"";position:absolute}
@@ -35,13 +35,13 @@ input,select,textarea{font:inherit;color:var(--ink)}
 .connection-status{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
 .status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex:none}
 .status-dot.online{box-shadow:0 0 0 3px rgba(34,197,94,.18)}
-.main-mode-bar{max-width:1200px;margin:12px auto 0;padding:0 24px;display:flex;gap:4px}
+.main-mode-bar{max-width:none;margin:12px auto 0;padding:0 24px;display:flex;gap:4px}
 .main-mode-bar::before{content:"";flex:1}
 .main-mode-btn{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;display:flex;gap:8px;align-items:center}
 .main-mode-btn i{font-size:13px}
 .main-mode-btn:hover{color:var(--ink);background:#f1f3f5}
 .main-mode-btn.active{background:var(--brand);color:#fff}
-.steps-nav{max-width:1200px;margin:0 auto;padding:14px 24px 16px;display:flex;align-items:center;gap:10px}
+.steps-nav{max-width:min(97vw, 1720px);margin:0 auto;padding:14px 24px 16px;display:flex;align-items:center;gap:10px}
 .step-item{display:flex;align-items:center;gap:9px;color:var(--faint);background:none;border:0;padding:0;text-align:left}
 .step-item .step-circle{width:28px;height:28px;flex:none;border-radius:50%;border:1.5px solid #d6dae0;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:#fff}
 .step-item .step-label{font-size:13px;font-weight:600;white-space:nowrap}
@@ -52,7 +52,7 @@ input,select,textarea{font:inherit;color:var(--ink)}
 .step-line{flex:1;height:1px;background:var(--line);min-width:24px}
 
 /* ---------- Layout ---------- */
-.main-content{max-width:1200px;margin:0 auto;padding:20px 24px 48px}
+.main-content{max-width:min(97vw, 1720px);margin:0 auto;padding:20px 24px 48px}
 .step-screen{display:none}
 .step-screen.active{display:block}
 .screen-view{display:block}
@@ -638,4 +638,1592 @@ input,select,textarea{font:inherit;color:var(--ink)}
 .participant-pill .pill-del-btn:hover {
   background: rgba(220, 38, 38, 0.15);
   color: var(--red);
+}
+
+/* ==========================================================================
+   BALANCED EXECUTIVE VIEWPORT - STEP 1 & STREAMLINED HEADER
+   Canh tỷ lệ vàng giữa Chiều Rộng và Chiều Dài, chữ to rõ ràng, không phải cuộn
+   ========================================================================== */
+
+:root {
+  --layout-max-width: min(92vw, 1420px);
+}
+
+.header-container,
+.steps-nav,
+.main-content {
+  max-width: var(--layout-max-width) !important;
+  width: 92% !important;
+  margin: 0 auto !important;
+}
+
+/* --- Streamlined 1-Row Header --- */
+.app-header {
+  border-bottom: 1px solid var(--line);
+}
+.header-container {
+  padding: 8px 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+.brand-info {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
+}
+.brand-logo {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 9px !important;
+  font-size: 14px !important;
+}
+.company-name {
+  font-size: 14.5px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.01em;
+  color: var(--brand);
+}
+.app-subtitle {
+  font-size: 11.5px !important;
+  color: var(--muted);
+  margin-top: 1px !important;
+}
+
+/* Mode Switcher nằm giữa Header */
+.main-mode-bar {
+  margin: 0 !important;
+  padding: 3px !important;
+  background: #f1f3f5 !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  border: 1px solid #e2e8f0 !important;
+}
+.main-mode-bar::before {
+  display: none !important;
+}
+.main-mode-btn {
+  padding: 6px 14px !important;
+  font-size: 12.5px !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+}
+.main-mode-btn i {
+  font-size: 12.5px !important;
+}
+
+.connection-status {
+  padding: 5px 12px !important;
+  font-size: 12px !important;
+}
+
+/* Steps Progress Bar gọn gàng */
+.steps-nav {
+  padding: 6px 18px 8px !important;
+  gap: 10px !important;
+}
+.step-item {
+  gap: 8px !important;
+}
+.step-item .step-circle {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+.step-item .step-label {
+  font-size: 12.5px !important;
+}
+
+/* --- Main Content --- */
+.main-content {
+  padding: 10px 18px 24px !important;
+}
+
+/* --- Setup Card Canh Cân Đối --- */
+#screenStep1 {
+  width: 100% !important;
+}
+#screenStep1 .setup-card {
+  width: 100% !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+}
+
+.card-header {
+  padding: 12px 20px 0 !important;
+  gap: 12px !important;
+  align-items: center !important;
+}
+.card-header-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+}
+.card-header h2 {
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+}
+.card-desc {
+  font-size: 12.5px !important;
+  color: var(--muted);
+  margin-top: 1px !important;
+}
+
+/* Setup Grid 2 Cột Đối Xứng */
+.setup-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px 18px !important;
+  padding: 12px 20px !important;
+}
+.setup-grid .full-width {
+  grid-column: 1 / -1 !important;
+}
+
+#groupMeetingMode,
+#groupAudioSource {
+  grid-column: span 1 !important;
+}
+
+.field-label,
+.section-label {
+  font-size: 12.5px !important;
+  font-weight: 650 !important;
+  color: var(--ink-2);
+  margin-bottom: 5px !important;
+}
+
+/* Mode cards & Audio source cards */
+.mode-selector,
+.audio-source-selector {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+.mode-card {
+  padding: 9px 12px !important;
+  border-radius: 10px !important;
+  min-height: 74px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+.mode-card-top {
+  margin-bottom: 4px !important;
+}
+.mode-badge {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 2px 7px !important;
+}
+.mode-check-mark {
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 10px !important;
+}
+.mode-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  margin-bottom: 2px !important;
+  color: var(--ink);
+}
+.mode-desc {
+  font-size: 11.5px !important;
+  line-height: 1.4 !important;
+  color: var(--muted) !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.source-card {
+  padding: 9px 12px !important;
+  gap: 10px !important;
+  border-radius: 10px !important;
+  align-items: center !important;
+  min-height: 74px !important;
+}
+.source-icon-wrap {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}
+.source-info strong {
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  margin-bottom: 2px !important;
+  color: var(--ink);
+}
+.source-info span {
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+  color: var(--muted) !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+/* Các Ô Nhập Liệu Chuẩn Executive */
+.form-input,
+.form-select {
+  padding: 6px 11px !important;
+  font-size: 13px !important;
+  height: 34px !important;
+  border-radius: 7px !important;
+}
+.field-hint {
+  font-size: 11.5px !important;
+  margin-top: 3px !important;
+  color: var(--muted) !important;
+}
+
+/* Thanh Chọn Thư Mục Lưu Trữ */
+.storage-picker-row {
+  gap: 8px !important;
+}
+.storage-input-wrap {
+  height: 34px !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+  border-radius: 7px !important;
+}
+.storage-input-wrap .form-input {
+  height: 32px !important;
+  font-size: 13px !important;
+}
+.storage-picker-row .btn {
+  height: 34px !important;
+  padding: 0 12px !important;
+  font-size: 12.5px !important;
+  border-radius: 7px !important;
+}
+
+/* Thành Viên Tham Dự */
+.participants-section-header {
+  margin-bottom: 5px !important;
+  gap: 8px !important;
+}
+.participants-count-badge {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+}
+.btn-text-action {
+  font-size: 11.5px !important;
+  padding: 3px 7px !important;
+}
+.add-participant-inline-bar {
+  padding: 4px 8px !important;
+  margin-bottom: 6px !important;
+  border-radius: 7px !important;
+}
+.form-input-compact {
+  height: 30px !important;
+  font-size: 12px !important;
+  padding: 4px 9px 4px 26px !important;
+  border-radius: 6px !important;
+}
+.btn-compact {
+  height: 30px !important;
+  font-size: 11.5px !important;
+  padding: 0 11px !important;
+  border-radius: 6px !important;
+}
+.participants-tags {
+  max-height: 66px !important;
+  gap: 5px !important;
+  padding: 2px !important;
+}
+.participant-pill {
+  padding: 4px 9px !important;
+  font-size: 12px !important;
+  gap: 6px !important;
+}
+.pill-name {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+.pill-role {
+  font-size: 11px !important;
+}
+
+/* Thanh Nút Thao Tác Dưới Cùng */
+.setup-actions {
+  padding: 10px 20px 14px !important;
+  margin-top: 0 !important;
+  gap: 10px !important;
+  border-top: 1px solid var(--line-2) !important;
+}
+.setup-actions .btn {
+  padding: 7px 16px !important;
+  font-size: 13px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+}
+
+@media (max-width: 1024px) {
+  .header-container {
+    flex-wrap: wrap !important;
+  }
+  .setup-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #groupMeetingMode,
+  #groupAudioSource {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+
+
+/* ==========================================================================
+   STEP 2 (PHÒNG HỌP TRỰC TIẾP): CHỮ THOẠI TO RÕ - FULL VIEWPORT KHÔNG CUỘN
+   Tối ưu hóa: Thanh bar gọn 1 dòng, nút dồn sang phải, phân tích có khoảng hở
+   ========================================================================== */
+
+/* Cố định khung hình Bước 2 vừa khít màn hình trình duyệt (Không cuộn trang) */
+/* Đảm bảo chỉ màn hình đang active mới được hiển thị, các bước khác ẩn hoàn toàn */
+.step-screen {
+  display: none !important;
+}
+.step-screen.active {
+  display: block !important;
+}
+
+/* Riêng Bước 2 khi active thì dùng display: flex để fit full viewport */
+#screenStep2.step-screen.active {
+  height: calc(100vh - 128px) !important;
+  max-height: calc(100vh - 128px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+/* --- Thanh Bar Điều Khiển Trực Tiếp (Live Control Bar) Gọn 1 Dòng Duy Nhất --- */
+.live-control-bar {
+  background: #ffffff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  padding: 6px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 8px !important;
+  flex-wrap: nowrap !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  flex-shrink: 0 !important;
+}
+
+.meeting-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  flex: 0 1 auto !important;
+}
+
+.mode-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  color: var(--brand) !important;
+  background: #eef2f7 !important;
+  border-radius: 999px !important;
+  padding: 3px 9px !important;
+  margin-bottom: 0 !important;
+  white-space: nowrap !important;
+  border: 1px solid #d9dee5 !important;
+}
+
+.current-meeting-title {
+  font-size: 13.5px !important;
+  font-weight: 750 !important;
+  color: var(--ink) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 320px !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Các chỉ số Live (Đồng hồ, Âm thanh, Ổ đĩa) */
+.live-indicators {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
+}
+
+.timer-box {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  border: 1px solid #d9dee5 !important;
+  border-radius: 6px !important;
+  padding: 3px 8px !important;
+  background: #f8fafc !important;
+  height: 28px !important;
+  color: var(--brand) !important;
+}
+
+.audio-waveform-box {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border: 1px solid #d9dee5 !important;
+  border-radius: 6px !important;
+  padding: 2px 7px !important;
+  height: 28px !important;
+  font-size: 11px !important;
+  color: var(--ink-2) !important;
+  background: #fff !important;
+}
+
+.audio-waveform-box canvas {
+  width: 55px !important;
+  height: 18px !important;
+}
+
+.recording-disk-pill {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 11px !important;
+  border: 1px dashed #cbd5e1 !important;
+  border-radius: 6px !important;
+  padding: 2px 8px !important;
+  height: 28px !important;
+  color: var(--muted) !important;
+  background: #fafbfc !important;
+}
+
+/* TẤT CẢ CÁC NÚT ĐẶT DỒN SANG TAY PHẢI */
+.live-action-buttons {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
+}
+
+.live-action-buttons .btn {
+  padding: 4px 11px !important;
+  font-size: 12px !important;
+  height: 30px !important;
+  border-radius: 6px !important;
+  white-space: nowrap !important;
+  font-weight: 600 !important;
+}
+
+.live-action-buttons .btn i {
+  font-size: 11.5px !important;
+}
+
+/* --- Khung 2 Cột Cuộc Họp (Chiếm trọn chiều cao còn lại) --- */
+.meeting-two-columns {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-columns: 5.2fr 6.8fr !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.column-left,
+.column-right {
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: relative !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--line) !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Header của 2 cột */
+.col-header {
+  padding: 8px 14px !important;
+  border-bottom: 1px solid var(--line-2) !important;
+  background: #fafbfc !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  height: 40px !important;
+  flex-shrink: 0 !important;
+}
+
+.col-title {
+  font-size: 13.5px !important;
+  font-weight: 750 !important;
+  color: var(--brand) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.turn-count {
+  font-size: 11.5px !important;
+  padding: 3px 8px !important;
+}
+
+/* Thanh chọn người phát biểu thu gọn mỏng */
+.active-speaker-bar {
+  padding: 6px 12px !important;
+  border-bottom: 1px solid var(--line-2) !important;
+  background: #fbfcfd !important;
+  flex-shrink: 0 !important;
+}
+
+.speaker-bar-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.active-speaker-indicator {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+}
+
+.active-mic-pulse {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 11px !important;
+}
+
+.current-speaker-highlight {
+  font-size: 12.5px !important;
+  color: var(--brand) !important;
+}
+
+.speaker-select-dropdown {
+  height: 26px !important;
+  padding: 2px 8px !important;
+  font-size: 11.5px !important;
+  max-width: 240px !important;
+}
+
+.speaker-chips-scroll {
+  display: flex !important;
+  gap: 5px !important;
+  padding-top: 5px !important;
+  overflow-x: auto !important;
+  scrollbar-width: thin !important;
+}
+
+.speaker-chip {
+  padding: 2px 8px !important;
+  font-size: 11.5px !important;
+  height: 24px !important;
+}
+
+/* --- CỘT TRÁI: VÙNG CUỘN CHỮ THOẠI TRỰC TIẾP --- */
+.transcript-scroll-area {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  padding: 12px 14px !important;
+  background: #f8fafc !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  scroll-behavior: smooth !important;
+}
+
+/* --- THIẾT KẾ CHỮ THOẠI TO RÕ RÀNG, DỄ ĐỌC HƠN --- */
+.chat-row,
+.transcript-bubble {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+  padding: 11px 14px !important;
+  margin-bottom: 0 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #eef2f6 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  transition: all 0.15s ease !important;
+  position: relative !important;
+}
+
+.chat-row:hover,
+.transcript-bubble:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Avatar người nói */
+.chat-avatar,
+.speaker-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  font-weight: 750 !important;
+  font-size: 13px !important;
+  flex-shrink: 0 !important;
+  background: var(--brand) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(15, 42, 68, 0.15) !important;
+}
+
+.chat-body {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* Meta người nói & Thời gian */
+.chat-meta,
+.bubble-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 5px !important;
+  flex-wrap: wrap !important;
+}
+
+.chat-author,
+.speaker-name {
+  font-size: 13.5px !important;
+  font-weight: 750 !important;
+  color: var(--brand) !important;
+}
+
+.chat-author.chairperson {
+  color: #0f2a44 !important;
+  font-weight: 800 !important;
+}
+
+.chat-time,
+.bubble-time {
+  font-size: 11.5px !important;
+  color: var(--faint) !important;
+  font-variant-numeric: tabular-nums !important;
+  margin-left: auto !important;
+}
+
+/* NỘI DUNG CHỮ THOẠI: TO HƠN, RÕ NÉT, DỄ ĐỌC */
+.chat-text,
+.bubble-text {
+  font-size: 15.5px !important;
+  font-weight: 480 !important;
+  line-height: 1.65 !important;
+  color: #1e293b !important;
+  word-break: break-word !important;
+  letter-spacing: -0.005em !important;
+}
+
+/* Highlight Trọng tâm Lãnh đạo */
+.chat-row.bookmark-hot,
+.chat-row.bookmarked,
+.transcript-bubble.bookmark-hot,
+.transcript-bubble.bookmarked {
+  background: #fffdf5 !important;
+  border-left: 4px solid var(--gold) !important;
+  border-color: #fde68a !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08) !important;
+}
+
+.chat-bookmark-tag,
+.bubble-bookmark-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  color: #b45309 !important;
+  background: #fef3c7 !important;
+  border-radius: 6px !important;
+  padding: 3px 8px !important;
+  margin-top: 6px !important;
+}
+
+/* Bubble đang phát biểu trực tiếp (Interim Speech) */
+.interim-live-row,
+.interim-live-bubble {
+  background: #f0f7ff !important;
+  border: 1.5px dashed #60a5fa !important;
+  border-left: 4px solid #2563eb !important;
+}
+
+.interim-live-row .chat-text,
+.interim-live-bubble .bubble-text {
+  color: #1d4ed8 !important;
+  font-style: italic !important;
+}
+
+/* Nút Bookmark trong hàng phát biểu */
+.chat-actions {
+  opacity: 0.6 !important;
+  transition: opacity 0.15s ease !important;
+  margin-left: 6px !important;
+}
+.chat-row:hover .chat-actions {
+  opacity: 1 !important;
+}
+.btn-chat-bookmark {
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  border-radius: 6px !important;
+  padding: 3px 7px !important;
+  font-size: 11px !important;
+  color: var(--muted) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.btn-chat-bookmark.bookmarked {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+  font-weight: 700 !important;
+}
+
+/* Thanh Nhập Nhanh ở đáy Cột Trái (Luôn thấy được đầy đủ) */
+.transcript-quick-input {
+  padding: 8px 12px !important;
+  height: 46px !important;
+  background: #ffffff !important;
+  border-top: 1px solid var(--line-2) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+.quick-speaker-tag {
+  height: 30px !important;
+  padding: 4px 8px !important;
+  font-size: 11.5px !important;
+}
+
+.transcript-quick-input input {
+  height: 32px !important;
+  font-size: 13px !important;
+  padding: 5px 10px !important;
+  border-radius: 6px !important;
+}
+
+#btnSendQuickText {
+  height: 32px !important;
+  width: 34px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+}
+
+/* --- CỘT PHẢI: TỔNG HỢP & PHÂN TÍCH TRỰC TIẾP --- */
+.analysis-scroll-area {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  background: #f8fafc !important;
+  scroll-behavior: smooth !important;
+}
+
+#analysisOption1Container,
+#analysisOption2Container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+/* THIẾT KẾ LẠI CÁC CARD PHÂN TÍCH: CÓ KHOẢNG HỞ, VIỀN RÕ RÀNG, SẠCH SẼ */
+.analysis-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  padding: 14px 18px !important;
+  margin: 0 !important;
+  transition: all 0.15s ease !important;
+}
+
+.analysis-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.07) !important;
+}
+
+/* Tiêu đề từng phần có số thứ tự badge rõ ràng */
+.card-section-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.section-tag-num {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 7px !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  background: #eef2f7 !important;
+  color: var(--brand) !important;
+  border: 1px solid #cbd5e1 !important;
+  flex-shrink: 0 !important;
+}
+
+.section-tag-title {
+  font-size: 14.5px !important;
+  font-weight: 750 !important;
+  color: #0f172a !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Card 02: Ý kiến chỉ đạo của Ban Lãnh Đạo (Nổi bật nhất) */
+.analysis-card.highlight-card {
+  border-left: 4px solid var(--brand) !important;
+  background: #fbfdff !important;
+  box-shadow: 0 2px 6px rgba(15, 42, 68, 0.07) !important;
+}
+
+.analysis-card.highlight-card .section-tag-num {
+  background: var(--brand) !important;
+  color: #ffffff !important;
+  border-color: var(--brand) !important;
+}
+
+.analysis-card.highlight-card .section-tag-title {
+  color: var(--brand) !important;
+}
+
+/* Card 05: Đã thống nhất & chốt (Xanh lá) */
+.analysis-card.card-success {
+  border-left: 4px solid #16a34a !important;
+  background: #fcfdfc !important;
+}
+
+.analysis-card.card-success .section-tag-num {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border-color: #86efac !important;
+}
+
+/* Card 06: Còn tồn đọng / theo dõi (Hổ phách) */
+.analysis-card.card-warning {
+  border-left: 4px solid #d97706 !important;
+  background: #fffdfb !important;
+}
+
+.analysis-card.card-warning .section-tag-num {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+}
+
+/* Card 08: Action Items (Chàm KLP) */
+.analysis-card.card-action-items {
+  border-left: 4px solid #4338ca !important;
+}
+
+.analysis-card.card-action-items .section-tag-num {
+  background: #e0e7ff !important;
+  color: #3730a3 !important;
+  border-color: #a5b4fc !important;
+}
+
+/* Grid 2 cột cho Đã chốt và Tồn đọng */
+.analysis-grid-2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+/* Danh sách gạch đầu dòng rõ ràng, cách dòng thoáng */
+.bullet-list {
+  font-size: 13.5px !important;
+  line-height: 1.65 !important;
+  color: #334155 !important;
+  padding-left: 20px !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+}
+
+.bullet-list li {
+  position: relative !important;
+}
+
+/* Bảng phân tích phát biểu và Action Items */
+.klp-table {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  border: 1px solid #e2e8f0 !important;
+  font-size: 12.5px !important;
+  width: 100% !important;
+}
+
+.klp-table thead th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 11.5px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  padding: 8px 10px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.klp-table tbody td {
+  padding: 8px 10px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: top !important;
+  line-height: 1.5 !important;
+  color: #334155 !important;
+}
+
+/* Deal Score Banner (Option 2) */
+.deal-score-banner {
+  padding: 12px 18px !important;
+  border-radius: 10px !important;
+  gap: 14px !important;
+}
+.score-circle {
+  width: 52px !important;
+  height: 52px !important;
+}
+.score-number {
+  font-size: 20px !important;
+}
+
+
+
+/* ==========================================================================
+   TỐI ƯU CỘT CHỮ THOẠI TRỰC TIẾP: RỘNG HƠN - CHỮ NHỎ GỌN - CHỨA NHIỀU NỘI DUNG
+   Bỏ chữ 'Đánh dấu' / 'Trọng tâm', chỉ giữ icon bookmark nhỏ gọn
+   ========================================================================== */
+
+/* 1. Mở rộng kích thước Cột Trái để chứa nhiều nội dung hơn */
+.meeting-two-columns {
+  grid-template-columns: 6.2fr 5.8fr !important;
+  gap: 12px !important;
+}
+
+/* 2. Bong bóng thoại nhỏ gọn, tiết kiệm diện tích tối đa */
+.chat-row,
+.transcript-bubble {
+  padding: 6px 10px !important;
+  gap: 8px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  border: 1px solid #edf2f7 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+  margin-bottom: 2px !important;
+}
+
+/* Avatar nhỏ gọn */
+.chat-avatar,
+.speaker-avatar {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 1px 3px rgba(15, 42, 68, 0.12) !important;
+}
+
+/* Meta người nói & thời gian nhỏ gọn */
+.chat-meta,
+.bubble-meta {
+  gap: 6px !important;
+  margin-bottom: 2px !important;
+}
+
+.chat-author,
+.speaker-name {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.chat-time,
+.bubble-time {
+  font-size: 10.5px !important;
+  color: var(--faint) !important;
+}
+
+/* 3. Chữ thoại nhỏ hơn, sắc nét, hiển thị được nhiều dòng cùng lúc */
+.chat-text,
+.bubble-text {
+  font-size: 13.5px !important;
+  font-weight: 450 !important;
+  line-height: 1.5 !important;
+  color: #1e293b !important;
+  letter-spacing: normal !important;
+}
+
+/* 4. Nút Bookmark chỉ giữ lại icon nhỏ gọn, bỏ hoàn toàn chữ 'Đánh dấu' / 'Trọng tâm' */
+.btn-chat-bookmark,
+.btn-bubble-bookmark {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 5px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: var(--muted) !important;
+  font-size: 11px !important;
+}
+
+.btn-chat-bookmark span,
+.btn-bubble-bookmark span {
+  display: none !important;
+}
+
+.btn-chat-bookmark.bookmarked,
+.btn-bubble-bookmark.bookmarked {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+}
+
+/* Ẩn hoàn toàn thẻ chữ 'Trọng tâm chỉ đạo' cồng kềnh */
+.chat-bookmark-tag,
+.bubble-bookmark-tag {
+  display: none !important;
+}
+
+/* Dòng ghi chú của thư ký (nếu có) hiển thị tinh gọn */
+.chat-bookmark-quote {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 11px !important;
+  color: #b45309 !important;
+  font-style: italic !important;
+  margin-top: 2px !important;
+}
+
+/* Viền vàng nhẹ khi được đánh dấu */
+.chat-row.bookmark-hot,
+.chat-row.bookmarked,
+.transcript-bubble.bookmark-hot,
+.transcript-bubble.bookmarked {
+  background: #fffdf5 !important;
+  border-left: 3px solid var(--gold) !important;
+  border-color: #fde68a !important;
+}
+
+
+
+/* ==========================================================================
+   BƯỚC 3: RÀ SOÁT & XUẤT VĂN BẢN CHUẨN DOANH NGHIỆP TẬP ĐOÀN KIM LONG PHÁT
+   Đồng bộ tỷ lệ cân đối, hub lưu trữ 3 file sắc nét, bản xem trước Word A4
+   ========================================================================== */
+
+#screenStep3 {
+  width: 100% !important;
+}
+
+#screenStep3 .review-card {
+  width: 100% !important;
+  background: #ffffff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06) !important;
+  padding-bottom: 24px !important;
+}
+
+#screenStep3 .card-header {
+  padding: 16px 24px 12px !important;
+  border-bottom: 1px solid var(--line-2) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+#screenStep3 .card-header-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 9px !important;
+  background: #eef2f7 !important;
+  color: var(--brand) !important;
+  font-size: 16px !important;
+}
+
+#screenStep3 .card-header h2 {
+  font-size: 16px !important;
+  font-weight: 750 !important;
+  color: var(--brand) !important;
+}
+
+#screenStep3 .card-desc {
+  font-size: 12.5px !important;
+  color: var(--muted) !important;
+  margin-top: 2px !important;
+}
+
+/* --- Hub Quản Lý Hồ Sơ Lưu Trữ Cuộc Họp --- */
+.meeting-archive-hub {
+  margin: 16px 20px !important;
+  padding: 16px 20px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+}
+
+.archive-hub-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 16px !important;
+  margin-bottom: 14px !important;
+  flex-wrap: wrap !important;
+}
+
+.hub-title {
+  font-size: 14.5px !important;
+  font-weight: 750 !important;
+  color: var(--brand) !important;
+}
+
+.hub-subtitle {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  margin-top: 2px !important;
+}
+
+.hub-storage-badge {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.storage-tag-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--ink-2) !important;
+}
+
+.storage-path-code {
+  font-family: ui-monospace, Menlo, monospace !important;
+  font-size: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #d9dee5 !important;
+  border-radius: 6px !important;
+  padding: 4px 10px !important;
+  color: var(--brand) !important;
+  font-weight: 600 !important;
+}
+
+.hub-path-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Lưới 3 Thẻ Tệp Lưu Trữ (.webm, .txt, .docx) */
+.archive-files-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 14px !important;
+}
+
+.archive-file-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 14px 16px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+.archive-file-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.07) !important;
+}
+
+.file-card-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.file-type-pill {
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+  letter-spacing: 0.04em !important;
+}
+
+.pill-audio {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+.pill-text {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.pill-word {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+.file-size-badge {
+  font-size: 11px !important;
+  color: var(--muted) !important;
+  font-weight: 600 !important;
+}
+
+.file-name {
+  font-size: 13.5px !important;
+  font-weight: 750 !important;
+  color: var(--ink) !important;
+  margin: 3px 0 !important;
+  word-break: break-all !important;
+}
+
+.file-desc {
+  font-size: 11.5px !important;
+  color: var(--muted) !important;
+  line-height: 1.4 !important;
+  flex: 1 1 auto !important;
+}
+
+.audio-player-widget {
+  width: 100% !important;
+  height: 32px !important;
+  margin-top: 4px !important;
+}
+
+.file-card-actions {
+  margin-top: 6px !important;
+}
+
+.file-card-actions .btn {
+  width: 100% !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+}
+
+/* --- Thanh Công Cụ Xuất Bản (Review Actions Bar) --- */
+.review-actions-bar {
+  margin: 14px 20px !important;
+  padding: 12px 18px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+.review-actions-bar .btn {
+  font-size: 13px !important;
+  height: 36px !important;
+  border-radius: 7px !important;
+  font-weight: 650 !important;
+}
+
+.review-actions-bar .export-options {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+#btnExportWordOption1,
+#btnExportWordOption2Full {
+  background: var(--brand) !important;
+  color: #ffffff !important;
+  border-color: var(--brand) !important;
+  box-shadow: 0 2px 6px rgba(15, 42, 68, 0.2) !important;
+}
+
+#btnExportWordOption1:hover,
+#btnExportWordOption2Full:hover {
+  background: var(--brand-2) !important;
+}
+
+/* --- Vùng Xem Trước Biên Bản Word Chuẩn A4 (.word-paper) --- */
+.document-preview-container {
+  margin: 16px 20px !important;
+  padding: 24px 20px !important;
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  min-height: 200px !important;
+  overflow-x: auto !important;
+}
+
+.word-paper {
+  background: #ffffff !important;
+  max-width: 860px !important;
+  margin: 0 auto !important;
+  padding: 48px 56px !important;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #d9dee5 !important;
+  border-radius: 4px !important;
+  font-family: "Times New Roman", Times, Georgia, serif !important;
+  font-size: 13pt !important;
+  line-height: 1.55 !important;
+  color: #111827 !important;
+}
+
+.word-paper h2 {
+  font-size: 16pt !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  margin: 18px 0 6px !important;
+  text-transform: uppercase !important;
+  color: #000000 !important;
+  letter-spacing: normal !important;
+}
+
+.word-paper h3 {
+  font-size: 12pt !important;
+  font-style: italic !important;
+  text-align: center !important;
+  margin-bottom: 22px !important;
+  font-weight: normal !important;
+  color: #374151 !important;
+}
+
+.word-paper .section-heading {
+  font-size: 12pt !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+  margin: 18px 0 8px !important;
+  color: #000000 !important;
+  border-bottom: 1.5px solid #cbd5e1 !important;
+  padding-bottom: 4px !important;
+}
+
+.word-paper table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 10px 0 16px !important;
+  font-size: 11pt !important;
+}
+
+.word-paper table th,
+.word-paper table td {
+  border: 1px solid #64748b !important;
+  padding: 6px 10px !important;
+  vertical-align: top !important;
+  line-height: 1.45 !important;
+}
+
+.word-paper table th {
+  background: #f1f5f9 !important;
+  font-weight: bold !important;
+  text-align: left !important;
+  color: #000000 !important;
+}
+
+.word-paper p {
+  margin: 8px 0 !important;
+}
+
+.word-paper ul {
+  margin: 4px 0 12px 24px !important;
+  padding: 0 !important;
+}
+
+.word-paper ul li {
+  margin-bottom: 4px !important;
+}
+
+.word-paper .doc-bookmark-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 9.5pt !important;
+  color: #b45309 !important;
+  background: #fef3c7 !important;
+  border-radius: 4px !important;
+  padding: 1px 6px !important;
+  font-weight: bold !important;
+}
+
+@media (max-width: 900px) {
+  .archive-files-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .word-paper {
+    padding: 24px 20px !important;
+  }
+}
+
+
+
+/* ==========================================================================
+   FIX DỨT ĐIỂM LỖI NHẢY CO GIẬT Ở THANH CHỌN ĐẠI BIỂU (ACTIVE SPEAKER BAR)
+   Ngăn dropdown bị rớt dòng và cố định kích thước khung 100%
+   ========================================================================== */
+
+.active-speaker-bar {
+  padding: 6px 12px !important;
+  border-bottom: 1px solid var(--line-2) !important;
+  background: #fbfcfd !important;
+  flex-shrink: 0 !important;
+  height: 68px !important;
+  max-height: 68px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+
+.speaker-bar-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.active-speaker-indicator {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+
+.active-mic-pulse {
+  width: 22px !important;
+  height: 22px !important;
+  font-size: 10.5px !important;
+  flex-shrink: 0 !important;
+}
+
+.speaker-label-text {
+  flex-shrink: 0 !important;
+  font-size: 11.5px !important;
+  color: var(--muted) !important;
+  white-space: nowrap !important;
+}
+
+.current-speaker-highlight {
+  font-size: 12.5px !important;
+  font-weight: 750 !important;
+  color: var(--brand) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  display: inline-block !important;
+}
+
+.speaker-select-shortcut {
+  flex-shrink: 0 !important;
+  width: 220px !important;
+  max-width: 220px !important;
+}
+
+.speaker-select-dropdown {
+  width: 100% !important;
+  height: 28px !important;
+  padding: 2px 8px !important;
+  font-size: 11.5px !important;
+  white-space: nowrap !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+}
+
+.speaker-chips-scroll {
+  display: flex !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.speaker-chip {
+  padding: 2px 9px !important;
+  font-size: 11.5px !important;
+  height: 24px !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
+.audio-waveform-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    border: 1px solid #d9dee5 !important;
+    border-radius: 9px !important;
+    padding: 6px 11px !important;
+    color: var(--ink-2) !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.audio-waveform-box canvas {
+    width: 76px !important;
+    height: 20px !important;
+    border-radius: 4px !important;
+    background: #f8fafc !important;
+    display: block !important;
 }
