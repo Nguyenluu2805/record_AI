@@ -259,8 +259,10 @@ async def add_transcript(session_id: str, req: AddTranscriptRequest):
         note=req.note
     )
 
-    if req.auto_analyze or len(session.transcripts) % 2 == 0:
-        await session.run_ai_analysis()
+    try:
+        await asyncio.wait_for(session.run_ai_analysis(), timeout=15.0)
+    except Exception as e:
+        print(f"[Meeting AI Analysis Error]: {e}")
 
     return {
         "segment": segment,
@@ -358,12 +360,11 @@ async def process_live_audio_chunk(
         text=text
     )
 
-    # Tự động chạy phân tích AI định kỳ mỗi 2 câu nói
-    if len(session.transcripts) % 2 == 0:
-        try:
-            await asyncio.wait_for(session.run_ai_analysis(), timeout=12.0)
-        except Exception as e:
-            print(f"[Meeting STT] Phân tích AI tự động gặp lỗi nhẹ: {e}")
+    # Tự động phân tích AI ngay khi có câu thoại mới
+    try:
+        await asyncio.wait_for(session.run_ai_analysis(), timeout=15.0)
+    except Exception as e:
+        print(f"[Meeting STT] Phân tích AI tự động: {e}")
 
     return {
         "success": True,
