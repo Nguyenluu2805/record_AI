@@ -693,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Step 1: Mode Switching
     modeOption1.addEventListener('click', () => {
+        applyStealthModeForOption2();
         modeOption1.classList.add('active');
         modeOption2.classList.remove('active');
         state.mode = 'option_1';
@@ -704,6 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     modeOption2.addEventListener('click', () => {
+        applyStealthModeForOption2();
         modeOption2.classList.add('active');
         modeOption1.classList.remove('active');
         state.mode = 'option_2';
@@ -907,6 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderActiveSpeakerSelector();
             startTimer();
             setStep(2);
+            applyStealthModeForOption2();
 
             // Vẽ trạng thái chờ trên canvas sóng âm
             if (window.meetingRecorder && waveformCanvas) {
@@ -926,6 +929,80 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error('Lỗi khởi tạo phiên họp:', e);
             showToast('Lỗi kết nối máy chủ khi tạo phiên họp', 'warning');
+        }
+    }
+
+    // Chế độ Ngụy trang Ngoại giao cho Option 2 (Họp Khách hàng & Đối tác)
+    // Hệ thống vẫn thu âm và ghi âm ngầm 100%, nhưng giao diện hoàn toàn không lộ dấu vết ghi âm
+    function applyStealthModeForOption2() {
+        const isOpt2 = state.mode === 'option_2';
+
+        // 1. Ổ cứng ghi âm trên header
+        if (recordingDiskPill) {
+            recordingDiskPill.style.display = isOpt2 ? 'none' : 'inline-flex';
+        }
+
+        // 2. Waveform canvas & chấm đỏ ghi âm
+        if (waveformCanvas) {
+            waveformCanvas.style.display = isOpt2 ? 'none' : 'inline-block';
+        }
+        if (recDot) {
+            recDot.style.display = isOpt2 ? 'none' : 'inline-block';
+        }
+        if (audioSourceText) {
+            audioSourceText.textContent = isOpt2 ? 'Trợ lý Phân tích Đàm phán' : 'Micro ON';
+            audioSourceText.style.color = isOpt2 ? '#1e3a8a' : '#059669';
+        }
+
+        // 3. Biểu tượng micro trên thanh active speaker
+        const micPulse = document.querySelector('.active-mic-pulse');
+        const speakerLabel = document.querySelector('.speaker-label-text');
+        if (micPulse) {
+            micPulse.innerHTML = isOpt2 ? '<i class="fa-solid fa-pen-nib"></i>' : '<i class="fa-solid fa-microphone"></i>';
+            if (isOpt2) {
+                micPulse.style.background = '#eff6ff';
+                micPulse.style.color = '#2563eb';
+                micPulse.style.boxShadow = 'none';
+                micPulse.style.animation = 'none';
+            } else {
+                micPulse.style.background = '';
+                micPulse.style.color = '';
+                micPulse.style.boxShadow = '';
+                micPulse.style.animation = '';
+            }
+        }
+        if (speakerLabel) {
+            speakerLabel.textContent = isOpt2 ? 'Đang ghi nhận ý kiến:' : 'Ghi lời cho:';
+        }
+
+        // 4. Nút nạp file ghi âm
+        const btnUploadDuring = document.getElementById('btnUploadAudioDuringMeeting');
+        if (btnUploadDuring) {
+            btnUploadDuring.style.display = isOpt2 ? 'none' : 'inline-flex';
+        }
+        const btnUploadTrigger = document.getElementById('btnUploadAudioTrigger');
+        if (btnUploadTrigger) {
+            btnUploadTrigger.style.display = isOpt2 ? 'none' : 'inline-flex';
+        }
+
+        // 5. Empty state ở cột chữ thoại
+        const emptyIconBox = document.querySelector('#transcriptEmptyState .empty-icon-box');
+        const emptyP = document.querySelector('#transcriptEmptyState p');
+        const emptySpan = document.querySelector('#transcriptEmptyState span');
+        if (emptyIconBox) {
+            emptyIconBox.innerHTML = isOpt2 ? '<i class="fa-solid fa-handshake"></i>' : '<i class="fa-solid fa-microphone-lines"></i>';
+        }
+        if (emptyP) {
+            emptyP.textContent = isOpt2 ? 'Hệ thống Trợ lý Thư ký đàm phán sẵn sàng ghi nhận diễn biến cuộc họp...' : 'Hệ thống sẵn sàng nhận diện và bóc tách chữ thoại theo thời gian thực...';
+        }
+        if (emptySpan) {
+            emptySpan.textContent = isOpt2 ? 'Nội dung trao đổi và các luận điểm đàm phán sẽ tự động hiển thị trực tiếp theo thời gian thực.' : 'Thư ký bấm chọn người đang phát biểu ở thanh trên; chữ thoại sẽ tự động chạy trực tiếp và cuộn theo dòng cuối như YouTube Live Chat.';
+        }
+
+        // 6. Ẩn hoàn toàn Card file audio ở Bước 3
+        const audioArchiveCard = document.querySelector('.archive-file-card.file-audio');
+        if (audioArchiveCard) {
+            audioArchiveCard.style.display = isOpt2 ? 'none' : 'block';
         }
     }
 
@@ -950,11 +1027,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-                window.meetingRecorder.onStatusChange = (status) => {
+        window.meetingRecorder.onStatusChange = (status) => {
+            if (state.mode === 'option_2') {
+                audioSourceText.textContent = 'Trợ lý Phân tích Đàm phán';
+                audioSourceText.style.color = '#1e3a8a';
+                if (recDot) recDot.style.display = 'none';
+                return;
+            }
             if (status === 'active') {
                 audioSourceText.textContent = state.audioSource === 'mic_only' ? 'Micro ON (Đang nghe)' : 'Micro + Hệ Thống ON';
                 audioSourceText.style.color = '#059669';
-                if (recDot) recDot.style.background = '#10b981';
+                if (recDot) {
+                    recDot.style.display = 'inline-block';
+                    recDot.style.background = '#10b981';
+                }
             } else if (status === 'permission_denied') {
                 audioSourceText.textContent = 'Micro bị chặn quyền';
                 audioSourceText.style.color = '#dc2626';
@@ -975,6 +1061,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         window.meetingRecorder.onAudioLevelChange = (volume) => {
+            if (state.mode === 'option_2') {
+                audioSourceText.textContent = 'Trợ lý Phân tích Đàm phán';
+                audioSourceText.style.color = '#1e3a8a';
+                if (recDot) recDot.style.display = 'none';
+                return;
+            }
             if (volume > 6) {
                 if (recDot) recDot.style.boxShadow = '0 0 8px #10b981';
                 audioSourceText.textContent = 'Micro ON (Đang nghe)';
@@ -998,17 +1090,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await window.meetingRecorder.startRecording(state.audioSource, waveformCanvas);
-            initWebSocket();
+            console.log('[Recorder] Micro & Speech Recognition đã hoạt động ngầm hoàn hảo!');
         } catch (err) {
             console.warn('Không mở được micro:', err);
             audioSourceText.textContent = 'Micro lỗi / bị chặn';
             audioSourceText.style.color = '#dc2626';
-            showPopup({
-                title: 'Không Thể Mở Microphone',
-                message: 'Không tìm thấy thiết bị Microphone hoặc quyền truy cập bị chặn trên trình duyệt.\n\nQuý Thư ký vui lòng bấm "Cho phép" (Allow) Micro trên thanh địa chỉ, hoặc có thể nhập phát biểu trực tiếp bằng khung nhập nhanh bên dưới.',
-                type: 'warning',
-                confirmText: 'Đã hiểu'
-            });
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                showPopup({
+                    title: 'Chưa Cấp Quyền Microphone',
+                    message: 'Trình duyệt đang chặn quyền sử dụng Micro.\n\nQuý Thư ký vui lòng bấm vào biểu tượng Micro/Ổ khóa trên thanh địa chỉ, chọn "Cho phép" (Allow) rồi làm mới lại trang.',
+                    type: 'warning',
+                    confirmText: 'Đã hiểu'
+                });
+            }
         }
     }
 
@@ -1729,6 +1823,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Step 3: Prepare Review
     async function prepareStep3Review() {
+        applyStealthModeForOption2();
         option1ExportBtns.style.display = state.mode === 'option_1' ? 'flex' : 'none';
         option2ExportBtns.style.display = state.mode === 'option_2' ? 'flex' : 'none';
 
@@ -2100,7 +2195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         `).join('')}
                     </table>
 
-                    <div class="section-heading" style="margin-top:24px;">V. PHỤ LỤC: BĂNG GHI CHỮ THOẠI NGUYÊN VĂN TỪ BẢN GHI ÂM</div>
+                    <div class="section-heading" style="margin-top:24px;">PHẦN V. PHỤ LỤC: NHẬT KÝ TRAO ĐỔI NGUYÊN VĂN TẠI PHIÊN HỌP</div>
                     <table>
                         <tr>
                             <th style="width:40px; text-align:center;">STT</th>
