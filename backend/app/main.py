@@ -269,6 +269,34 @@ async def add_transcript(session_id: str, req: AddTranscriptRequest):
         "analysis_state": session.analysis_state
     }
 
+@app.delete("/api/meetings/{session_id}/transcript/{transcript_id}")
+@app.post("/api/meetings/{session_id}/transcript/{transcript_id}/delete")
+async def delete_transcript_endpoint(session_id: str, transcript_id: str):
+    """Xóa một đoạn câu thoại dư thừa và kích hoạt AI phân tích lại dựa trên dữ liệu chuẩn"""
+    session = meeting_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phiên họp")
+
+    deleted = session.delete_transcript_segment(transcript_id)
+    
+    # Broadcast cập nhật qua WebSocket nếu có
+    await ws_manager.broadcast_to_session(session_id, {
+        "type": "transcript_deleted",
+        "transcript_id": transcript_id
+    })
+
+    # Tự động chạy lại AI phân tích
+    try:
+        asyncio.create_task(session.run_ai_analysis())
+    except Exception as e:
+        print(f"[Delete Transcript AI Re-analyze Error]: {e}")
+
+    return {
+        "success": deleted,
+        "transcripts": session.transcripts,
+        "analysis_state": session.analysis_state
+    }
+
 @app.post("/api/meetings/{session_id}/bookmark")
 def mark_bookmark(session_id: str, req: BookmarkRequest):
     """Thư ký bấm nút Đánh dấu trọng tâm (hỗ trợ theo từng đoạn text và toggle)"""

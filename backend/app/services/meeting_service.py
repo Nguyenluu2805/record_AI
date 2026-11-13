@@ -202,6 +202,29 @@ class MeetingSession:
         self.secretary_notes.append(note_obj)
         return note_obj
 
+    def delete_transcript_segment(self, transcript_id: Any) -> bool:
+        """Xóa một đoạn thoại dư thừa hoặc nhận diện sai khỏi danh sách chữ thoại"""
+        initial_len = len(self.transcripts)
+        t_id_str = str(transcript_id)
+        
+        # Lọc bỏ segment có id trùng khớp
+        self.transcripts = [
+            t for t in self.transcripts 
+            if str(t.get("id")) != t_id_str
+        ]
+        
+        # Nếu có trong hot_bookmarks cũng xóa bỏ
+        self.hot_bookmarks = [
+            bm for bm in self.hot_bookmarks 
+            if str(bm.get("transcript_id")) != t_id_str
+        ]
+        if "hot_bookmarks" in self.analysis_state:
+            self.analysis_state["hot_bookmarks"] = self.hot_bookmarks
+
+        # Tính toán lại tỷ lệ phát biểu
+        self._calculate_speech_ratios()
+        return len(self.transcripts) < initial_len
+
     def _calculate_speech_ratios(self):
         """Tính toán tỷ lệ phần trăm thời lượng phát biểu theo số từ"""
         if not self.transcripts:

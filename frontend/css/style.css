@@ -2227,3 +2227,61 @@ input,select,textarea{font:inherit;color:var(--ink)}
     background: #f8fafc !important;
     display: block !important;
 }
+
+/* Nút xóa câu thoại dư/sai trong Bubble (1-Click AI Recalculate) */
+.btn-chat-delete, .btn-bubble-delete {
+  border: 1px solid #fee2e2 !important;
+  background: #ffffff !important;
+  border-radius: 6px !important;
+  padding: 3px 7px !important;
+  font-size: 11px !important;
+  color: #ef4444 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.btn-chat-delete:hover, .btn-bubble-delete:hover {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-color: #fca5a5 !important;
+}
+
+/* Thanh công cụ In-Browser Document Editor ở Bước 3 */
+.doc-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #334155;
+}
+.doc-editor-toolbar .editor-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+.doc-editor-toolbar .editor-hint i {
+  color: #2563eb;
+  font-size: 16px;
+}
+.word-paper [contenteditable="true"] {
+  outline: none;
+  border-radius: 4px;
+  padding: 2px 4px;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.word-paper [contenteditable="true"]:hover {
+  background: #f1f5f9;
+  box-shadow: 0 0 0 1px #cbd5e1;
+}
+.word-paper [contenteditable="true"]:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px #3b82f6;
+}

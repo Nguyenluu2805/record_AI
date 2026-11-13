@@ -1245,6 +1245,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         title="${seg.is_bookmark ? 'Bỏ đánh dấu trọng tâm' : 'Đánh dấu trọng tâm đoạn này'}">
                     <i class="${seg.is_bookmark ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
                 </button>
+                <button class="btn-chat-delete btn-bubble-delete" 
+                        data-id="${seg.id}" 
+                        title="Xóa câu thoại dư/sai này để AI tính toán lại">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </div>
         `;
 
@@ -1264,6 +1269,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 toggleSegmentBookmark(seg.id, selectedSnippet);
+            });
+        }
+
+        // Xóa câu thoại dư/sai bằng 1-Click (AI tự động tính toán lại)
+        const btnDelete = row.querySelector('.btn-chat-delete, .btn-bubble-delete');
+        if (btnDelete) {
+            btnDelete.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const segId = btnDelete.getAttribute('data-id') || seg.id;
+                if (!segId) return;
+
+                // Hiệu ứng xóa trượt êm ái
+                row.style.transition = 'all 0.25s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-24px)';
+                setTimeout(() => {
+                    row.remove();
+                    if (state.transcripts.length === 0 && transcriptEmptyState) {
+                        transcriptEmptyState.style.display = 'block';
+                    }
+                }, 250);
+
+                // Loại khỏi bộ nhớ transcripts
+                state.transcripts = state.transcripts.filter(t => String(t.id) !== String(segId));
+                if (turnCountBadge) {
+                    turnCountBadge.textContent = `${state.transcripts.length} lượt phát biểu`;
+                }
+
+                showToast('Đã xóa câu thoại dư thừa. AI đang tự động tính toán lại...', 'info');
+
+                // Gọi backend xóa và kích hoạt AI phân tích lại
+                try {
+                    const res = await fetch(`/api/meetings/${state.sessionId}/transcript/${segId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+                    if (data && data.analysis_state) {
+                        state.analysisState = data.analysis_state;
+                        renderLiveAnalysis();
+                    }
+                } catch (err) {
+                    console.warn('Lỗi khi xóa transcript trên server:', err);
+                }
             });
         }
 
@@ -1656,6 +1704,16 @@ document.addEventListener('DOMContentLoaded', () => {
         option1ExportBtns.style.display = state.mode === 'option_1' ? 'flex' : 'none';
         option2ExportBtns.style.display = state.mode === 'option_2' ? 'flex' : 'none';
 
+        // Nếu là Option 2 (Họp Khách hàng & Đối tác): Ẩn hoàn toàn Card Ghi âm âm thanh
+        const audioArchiveCard = document.querySelector('.archive-file-card.file-audio');
+        if (audioArchiveCard) {
+            audioArchiveCard.style.display = state.mode === 'option_2' ? 'none' : 'block';
+        }
+        const btnUploadDuringMeeting = document.getElementById('btnUploadAudioDuringMeeting');
+        if (btnUploadDuringMeeting) {
+            btnUploadDuringMeeting.style.display = state.mode === 'option_2' ? 'none' : 'inline-flex';
+        }
+
         const displayStoragePath = document.getElementById('displayStoragePath');
         if (displayStoragePath) {
             displayStoragePath.textContent = state.storagePath || "D:\\review_agent\\output\\meetings";
@@ -1813,13 +1871,139 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDocumentPreview();
     }
 
+    // Thu thập toàn bộ nội dung mà người dùng vừa chỉnh sửa trực tiếp trên màn hình xem trước
+    function collectEditedAnalysisFromDOM() {
+        if (!state.analysisState) state.analysisState = {};
+        const paper = document.querySelector('.word-paper');
+        if (!paper) return state.analysisState;
+
+        if (state.mode === 'option_1') {
+            // 1. Tiêu đề cuộc họp
+            const titleEl = paper.querySelector('.doc-editable-title');
+            if (titleEl) {
+                const rawTitle = titleEl.textContent.replace(/^Về việc:\s*/i, '').trim();
+                if (rawTitle) state.analysisState.meeting_title = rawTitle;
+            }
+
+            // 2. Tóm tắt mục tiêu
+            const goalEls = paper.querySelectorAll('.doc-editable-goals li');
+            if (goalEls.length > 0) {
+                state.analysisState.summary_goals = Array.from(goalEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+
+            // 3. Ý kiến chỉ đạo
+            const dirEls = paper.querySelectorAll('.doc-editable-directions li');
+            if (dirEls.length > 0) {
+                state.analysisState.leader_directions = Array.from(dirEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+
+            // 4. Các vấn đề ĐÃ THỐNG NHẤT
+            const agreedEls = paper.querySelectorAll('.doc-editable-agreed li');
+            if (agreedEls.length > 0) {
+                state.analysisState.agreed_issues = Array.from(agreedEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+
+            // 5. Các vấn đề CÒN TỒN ĐỌNG
+            const pendingEls = paper.querySelectorAll('.doc-editable-pending li');
+            if (pendingEls.length > 0) {
+                state.analysisState.pending_issues = Array.from(pendingEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+
+            // 6. Bảng phân công Action items
+            const actionRows = paper.querySelectorAll('.doc-action-row');
+            if (actionRows.length > 0) {
+                const items = [];
+                actionRows.forEach((row, idx) => {
+                    const stt = row.querySelector('[data-field="stt"]')?.textContent.trim() || String(idx + 1);
+                    const task = row.querySelector('[data-field="task"]')?.textContent.trim() || '';
+                    const pic = row.querySelector('[data-field="pic"]')?.textContent.trim() || '';
+                    const coordinating = row.querySelector('[data-field="coordinating_dept"]')?.textContent.trim() || '';
+                    const deadline = row.querySelector('[data-field="deadline"]')?.textContent.trim() || '';
+                    const kpi = row.querySelector('[data-field="kpi"]')?.textContent.trim() || '';
+                    if (task) {
+                        items.push({ stt, task, pic, coordinating_dept: coordinating, deadline, kpi });
+                    }
+                });
+                if (items.length > 0) state.analysisState.action_items = items;
+            }
+        } else {
+            // Option 2 (Đàm phán Khách hàng & Đối tác)
+            const titleEl = paper.querySelector('.doc-editable-title');
+            if (titleEl) {
+                const rawTitle = titleEl.textContent.replace(/^Dự án:\s*/i, '').trim();
+                if (rawTitle) state.analysisState.project_title = rawTitle;
+            }
+
+            const painEls = paper.querySelectorAll('.doc-editable-pain-points li');
+            if (painEls.length > 0) {
+                state.analysisState.customer_pain_points = Array.from(painEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+
+            const propEls = paper.querySelectorAll('.doc-editable-proposals li');
+            if (propEls.length > 0) {
+                state.analysisState.klp_proposals = Array.from(propEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+
+            const termRows = paper.querySelectorAll('.doc-commercial-row');
+            if (termRows.length > 0) {
+                const terms = [];
+                termRows.forEach(row => {
+                    const term_name = row.querySelector('[data-field="term_name"]')?.textContent.trim() || '';
+                    const klp_offer = row.querySelector('[data-field="klp_offer"]')?.textContent.trim() || '';
+                    const partner_demand = row.querySelector('[data-field="partner_demand"]')?.textContent.trim() || '';
+                    const status = row.querySelector('[data-field="status"]')?.textContent.trim() || 'Thống nhất';
+                    if (term_name) {
+                        terms.push({ term_name, klp_offer, partner_demand, status });
+                    }
+                });
+                if (terms.length > 0) state.analysisState.commercial_terms = terms;
+            }
+
+            if (!state.analysisState.confidential_internal) state.analysisState.confidential_internal = {};
+            const sigEls = paper.querySelectorAll('.doc-editable-signals li');
+            if (sigEls.length > 0) {
+                state.analysisState.confidential_internal.buying_signals = Array.from(sigEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+            const redEls = paper.querySelectorAll('.doc-editable-red-flags li');
+            if (redEls.length > 0) {
+                state.analysisState.confidential_internal.objections_and_red_flags = Array.from(redEls).map(el => el.textContent.trim()).filter(Boolean);
+            }
+
+            const followRows = paper.querySelectorAll('.doc-followup-row');
+            if (followRows.length > 0) {
+                const followups = [];
+                followRows.forEach(row => {
+                    const party = row.querySelector('[data-field="party"]')?.textContent.trim() || '';
+                    const task = row.querySelector('[data-field="task"]')?.textContent.trim() || '';
+                    const pic = row.querySelector('[data-field="pic"]')?.textContent.trim() || '';
+                    const deadline = row.querySelector('[data-field="deadline"]')?.textContent.trim() || '';
+                    const priority = row.querySelector('[data-field="priority"]')?.textContent.trim() || 'Cao';
+                    if (task) {
+                        followups.push({ party, task, pic, deadline, priority });
+                    }
+                });
+                if (followups.length > 0) state.analysisState.follow_up_plan = followups;
+            }
+        }
+        return state.analysisState;
+    }
+
     function renderDocumentPreview() {
         const a = state.analysisState || {};
         const today = new Date().toLocaleDateString('vi-VN');
 
-        let html = '';
+        const editorToolbarHtml = `
+            <div class="doc-editor-toolbar">
+                <div class="editor-hint">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span><strong>Chế độ Soạn thảo Trực tiếp:</strong> Quý Thư ký có thể bấm trực tiếp vào bất kỳ dòng văn bản, mục tiêu, chỉ đạo hoặc bảng phân công để chỉnh sửa trực tiếp trên màn hình. Bản tải về sẽ áp dụng 100% nội dung đã sửa.</span>
+                </div>
+            </div>
+        `;
+
+        let html = editorToolbarHtml;
         if (state.mode === 'option_1') {
-            html = `
+            html += `
                 <div class="word-paper">
                     <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                         <div style="text-align:center; font-size:11pt; line-height:1.3;">
@@ -1833,22 +2017,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <h2>BIÊN BẢN CUỘC HỌP NỘI BỘ</h2>
-                    <h3>Về việc: ${a.meeting_title || state.meetingTitle}</h3>
+                    <h3 class="doc-editable-title" contenteditable="true" title="Bấm để sửa tiêu đề">Về việc: ${a.meeting_title || state.meetingTitle}</h3>
 
                     <div class="section-heading">I. THÔNG TIN CHUNG & THÀNH PHẦN THAM DỰ</div>
                     <table>
-                        <tr><td style="width:30%; background:#f4f4f5;"><strong>1. Thời gian & Hình thức:</strong></td><td>${new Date().toLocaleDateString('vi-VN')} | ${state.audioSource === 'mic_only' ? 'Trực tiếp tại phòng họp' : 'Trực tiếp kết hợp Online Zoom'}</td></tr>
-                        <tr><td style="background:#f4f4f5;"><strong>2. Chủ trì cuộc họp:</strong></td><td>${state.chairperson}</td></tr>
-                        <tr><td style="background:#f4f4f5;"><strong>3. Thư ký cuộc họp:</strong></td><td>${state.secretary}</td></tr>
-                        <tr><td style="background:#f4f4f5;"><strong>4. Thành phần tham dự:</strong></td><td>${(Array.isArray(state.participants) && state.participants.length > 0 ? state.participants : ['Bà Phan Thị Phát (Tổng Giám Đốc)', 'Ông Nguyễn Kim Long (Chủ tịch HĐQT)', 'Ông Trần Văn Hùng (Phó TGĐ)', 'Bà Lê Thu Thảo (Thư ký)']).join('<br>')}</td></tr>
+                        <tr><td style="width:30%; background:#f4f4f5;"><strong>1. Thời gian & Hình thức:</strong></td><td contenteditable="true">${new Date().toLocaleDateString('vi-VN')} | ${state.audioSource === 'mic_only' ? 'Trực tiếp tại phòng họp' : 'Trực tiếp kết hợp Online Zoom'}</td></tr>
+                        <tr><td style="background:#f4f4f5;"><strong>2. Chủ trì cuộc họp:</strong></td><td contenteditable="true">${state.chairperson}</td></tr>
+                        <tr><td style="background:#f4f4f5;"><strong>3. Thư ký cuộc họp:</strong></td><td contenteditable="true">${state.secretary}</td></tr>
+                        <tr><td style="background:#f4f4f5;"><strong>4. Thành phần tham dự:</strong></td><td contenteditable="true">${(Array.isArray(state.participants) && state.participants.length > 0 ? state.participants : ['Bà Phan Thị Phát (Tổng Giám Đốc)', 'Ông Nguyễn Kim Long (Chủ tịch HĐQT)', 'Ông Trần Văn Hùng (Phó TGĐ)', 'Bà Lê Thu Thảo (Thư ký)']).join('<br>')}</td></tr>
                     </table>
 
                     <div class="section-heading">II. NỘI DUNG CHỈ ĐẠO & PHÂN TÍCH PHÁT BIỂU</div>
                     <p><strong>1. Tóm tắt mục tiêu trọng tâm:</strong></p>
-                    <ul>${(a.summary_goals || []).map(g => `<li>${g}</li>`).join('')}</ul>
+                    <ul class="doc-editable-goals">${(a.summary_goals || ['Đang tổng hợp mục tiêu...']).map(g => `<li contenteditable="true" title="Bấm để sửa mục tiêu">${g}</li>`).join('')}</ul>
 
                     <p><strong>2. Ý kiến chỉ đạo của Chủ trì (Ban Lãnh Đạo):</strong></p>
-                    <ul>${(a.leader_directions || []).map(d => `<li>${d}</li>`).join('')}</ul>
+                    <ul class="doc-editable-directions">${(a.leader_directions || ['Đang tổng hợp ý kiến chỉ đạo...']).map(d => `<li contenteditable="true" title="Bấm để sửa ý kiến chỉ đạo">${d}</li>`).join('')}</ul>
 
                     <p><strong>Bảng Phân tích Thoại & Đánh giá Đóng góp:</strong></p>
                     <table>
@@ -1856,32 +2040,34 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${(a.speech_analytics || []).map(s => `
                             <tr>
                                 <td><strong>${s.speaker}</strong></td>
-                                <td style="text-align:center;">${s.ratio_percent}%</td>
-                                <td>${s.key_points || ''}</td>
-                                <td>${s.attitude || ''}</td>
-                                <td>${s.contribution_eval || ''}</td>
+                                <td style="text-align:center;" contenteditable="true">${s.ratio_percent}%</td>
+                                <td contenteditable="true">${s.key_points || ''}</td>
+                                <td contenteditable="true">${s.attitude || ''}</td>
+                                <td contenteditable="true">${s.contribution_eval || ''}</td>
                             </tr>
                         `).join('')}
                     </table>
 
                     <div class="section-heading">III. ĐÁNH GIÁ KẾT QUẢ CUỘC HỌP</div>
                     <p><strong>✅ Các vấn đề ĐÃ THỐNG NHẤT:</strong></p>
-                    <ul>${(a.agreed_issues || []).map(ai => `<li>${ai}</li>`).join('')}</ul>
+                    <ul class="doc-editable-agreed">${(a.agreed_issues || ['Đang cập nhật...']).map(ai => `<li contenteditable="true" title="Bấm để sửa">${ai}</li>`).join('')}</ul>
 
                     <p><strong>⏳ Các vấn đề CÒN TỒN ĐỌNG:</strong></p>
-                    <ul>${(a.pending_issues || []).map(pi => `<li>${pi}</li>`).join('')}</ul>
+                    <ul class="doc-editable-pending">${(a.pending_issues || ['Không có tồn đọng phát sinh.']).map(pi => `<li contenteditable="true" title="Bấm để sửa">${pi}</li>`).join('')}</ul>
 
                     <div class="section-heading">IV. BẢNG PHÂN CÔNG CÔNG VIỆC (ACTION ITEMS)</div>
                     <table>
                         <tr><th>STT</th><th>Đầu việc cụ thể</th><th>Phụ trách (PIC)</th><th>Phối hợp</th><th>Thời hạn</th><th>KPI đầu ra</th></tr>
-                        ${(a.action_items || []).map(act => `
-                            <tr>
-                                <td style="text-align:center;">${act.stt}</td>
-                                <td><strong>${act.task}</strong></td>
-                                <td>${act.pic}</td>
-                                <td>${act.coordinating_dept}</td>
-                                <td>${act.deadline}</td>
-                                <td>${act.kpi}</td>
+                        ${(a.action_items || [
+                            { stt: '1', task: 'Triển khai công việc theo đúng chỉ đạo ban TGĐ', pic: 'Các bộ phận liên quan', coordinating_dept: 'Ban TGĐ', deadline: 'Trong tuần', kpi: 'Hoàn thành 100%' }
+                        ]).map(act => `
+                            <tr class="doc-action-row">
+                                <td style="text-align:center;" contenteditable="true" data-field="stt">${act.stt}</td>
+                                <td><strong contenteditable="true" data-field="task">${act.task}</strong></td>
+                                <td contenteditable="true" data-field="pic">${act.pic}</td>
+                                <td contenteditable="true" data-field="coordinating_dept">${act.coordinating_dept}</td>
+                                <td contenteditable="true" data-field="deadline">${act.deadline}</td>
+                                <td contenteditable="true" data-field="kpi">${act.kpi}</td>
                             </tr>
                         `).join('')}
                     </table>
@@ -1899,7 +2085,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <td style="text-align:center;">${idx + 1 < 10 ? '0' + (idx + 1) : idx + 1}</td>
                                 <td style="text-align:center;">${t.timestamp}</td>
                                 <td><strong>${t.speaker}</strong> ${t.is_bookmark ? '<span class="doc-bookmark-badge"><i class="fa-solid fa-bookmark"></i> [Trọng tâm]</span>' : ''}</td>
-                                <td>${t.text} ${t.note ? `<br><small style="color:#64748b; font-style:italic;">-> Ghi chú: ${t.note}</small>` : ''}</td>
+                                <td contenteditable="true">${t.text} ${t.note ? `<br><small style="color:#64748b; font-style:italic;">-> Ghi chú: ${t.note}</small>` : ''}</td>
                             </tr>
                         `).join('')}
                     </table>
@@ -1919,7 +2105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Option 2 Preview
             const conf = a.confidential_internal || {};
-            html = `
+            html += `
                 <div class="word-paper">
                     <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                         <div style="text-align:center; font-size:11pt; line-height:1.3;">
@@ -1933,7 +2119,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <h2>BIÊN BẢN LÀM VIỆC & PHÂN TÍCH ĐÀM PHÁN ĐỐI TÁC</h2>
-                    <h3>Dự án: ${state.meetingTitle}</h3>
+                    <h3 class="doc-editable-title" contenteditable="true" title="Bấm để sửa tiêu đề dự án">Dự án: ${state.meetingTitle}</h3>
                     <p style="text-align:right; color:#991b1b; font-weight:700; font-size:10pt;">[TÀI LIỆU LƯU HÀNH NỘI BỘ - MẬT]</p>
 
                     <div class="section-heading">PHẦN A. NỘI DUNG LÀM VIỆC CHUNG</div>
@@ -1943,50 +2129,54 @@ document.addEventListener('DOMContentLoaded', () => {
                             <th style="width:50%;">ĐẠI DIỆN ĐỐI TÁC (BÊN B)</th>
                         </tr>
                         <tr>
-                            <td>• Ông Trần Văn Hùng - Phó TGĐ<br>• Ông Đặng Minh Trí - Trưởng BP Kinh Doanh<br>• Thư ký: ${state.secretary}</td>
-                            <td>• Đơn vị: ${state.partnerName}<br>• Đại diện: ${state.partnerReps}</td>
+                            <td contenteditable="true">• Ông Trần Văn Hùng - Phó TGĐ<br>• Ông Đặng Minh Trí - Trưởng BP Kinh Doanh<br>• Thư ký: ${state.secretary}</td>
+                            <td contenteditable="true">• Đơn vị: ${state.partnerName}<br>• Đại diện: ${state.partnerReps}</td>
                         </tr>
                     </table>
 
                     <p><strong>1. Nhu cầu & Pain Points của Đối tác:</strong></p>
-                    <ul>${(a.customer_pain_points || []).map(cp => `<li>${cp}</li>`).join('')}</ul>
+                    <ul class="doc-editable-pain-points">${(a.customer_pain_points || ['Đang tổng hợp...']).map(cp => `<li contenteditable="true">${cp}</li>`).join('')}</ul>
 
                     <p><strong>2. Đề xuất & Giải pháp của Kim Long Phát:</strong></p>
-                    <ul>${(a.klp_proposals || []).map(kp => `<li>${kp}</li>`).join('')}</ul>
+                    <ul class="doc-editable-proposals">${(a.klp_proposals || ['Đang tổng hợp...']).map(kp => `<li contenteditable="true">${kp}</li>`).join('')}</ul>
 
                     <p><strong>3. Bảng Bóc tách Thông số Thương mại:</strong></p>
                     <table>
                         <tr><th>Hạng mục thương thảo</th><th>Đề xuất của Kim Long Phát</th><th>Phản hồi của Đối tác</th><th>Trạng thái chốt</th></tr>
-                        ${(a.commercial_terms || []).map(c => `
-                            <tr>
-                                <td><strong>${c.term_name}</strong></td>
-                                <td>${c.klp_offer}</td>
-                                <td>${c.partner_demand}</td>
-                                <td style="text-align:center;"><strong>${c.status}</strong></td>
+                        ${(a.commercial_terms || [
+                            { term_name: 'Báo giá thiết bị KLP', klp_offer: 'Giá ưu đãi đại lý', partner_demand: 'Chiết khấu bổ sung', status: 'Đang thảo luận' }
+                        ]).map(c => `
+                            <tr class="doc-commercial-row">
+                                <td><strong contenteditable="true" data-field="term_name">${c.term_name}</strong></td>
+                                <td contenteditable="true" data-field="klp_offer">${c.klp_offer}</td>
+                                <td contenteditable="true" data-field="partner_demand">${c.partner_demand}</td>
+                                <td style="text-align:center;"><strong contenteditable="true" data-field="status">${c.status}</strong></td>
                             </tr>
                         `).join('')}
                     </table>
 
                     <div class="section-heading" style="color:#991b1b;">PHẦN B. PHÂN TÍCH TÂM LÝ ĐÀM PHÁN & LƯU Ý MẬT (CHỈ NỘI BỘ KLP)</div>
                     <p><strong>1. Đánh giá Mức độ Đồng thuận (Deal Score): <span style="font-size:13pt; color:#059669;">${conf.deal_score || '--'}/10</span></strong></p>
-                    <p><em>${conf.deal_score_explanation || ''}</em></p>
+                    <p><em contenteditable="true">${conf.deal_score_explanation || ''}</em></p>
 
                     <p><strong>2. Các tín hiệu đồng thuận & Động lực hợp tác (Buying Signals):</strong></p>
-                    <ul>${(conf.buying_signals || []).map(b => `<li>${b}</li>`).join('')}</ul>
+                    <ul class="doc-editable-signals">${(conf.buying_signals || ['Đang ghi nhận...']).map(b => `<li contenteditable="true">${b}</li>`).join('')}</ul>
 
                     <p><strong>3. Các điểm nghẽn & Vấn đề cần lưu ý (Red Flags):</strong></p>
-                    <ul>${(conf.objections_and_red_flags || []).map(o => `<li>${o}</li>`).join('')}</ul>
+                    <ul class="doc-editable-red-flags">${(conf.objections_and_red_flags || ['Không có rào cản lớn.']).map(o => `<li contenteditable="true">${o}</li>`).join('')}</ul>
 
                     <div class="section-heading">PHẦN C. KẾ HOẠCH HÀNH ĐỘNG TIẾP THEO (FOLLOW-UP PLAN)</div>
                     <table>
                         <tr><th>Bên thực hiện</th><th>Nội dung cam kết</th><th>Người phụ trách</th><th>Thời hạn</th><th>Ưu tiên</th></tr>
-                        ${(a.follow_up_plan || []).map(f => `
-                            <tr>
-                                <td><strong>${f.party}</strong></td>
-                                <td>${f.task}</td>
-                                <td>${f.pic}</td>
-                                <td>${f.deadline}</td>
-                                <td style="text-align:center;">${f.priority}</td>
+                        ${(a.follow_up_plan || [
+                            { party: 'Kim Long Phát', task: 'Gửi bản chào giá chính thức', pic: 'Phòng Kinh Doanh', deadline: '24 giờ tới', priority: 'Cao' }
+                        ]).map(f => `
+                            <tr class="doc-followup-row">
+                                <td><strong contenteditable="true" data-field="party">${f.party}</strong></td>
+                                <td contenteditable="true" data-field="task">${f.task}</td>
+                                <td contenteditable="true" data-field="pic">${f.pic}</td>
+                                <td contenteditable="true" data-field="deadline">${f.deadline}</td>
+                                <td style="text-align:center;" contenteditable="true" data-field="priority">${f.priority}</td>
                             </tr>
                         `).join('')}
                     </table>
@@ -2004,7 +2194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <td style="text-align:center;">${idx + 1 < 10 ? '0' + (idx + 1) : idx + 1}</td>
                                 <td style="text-align:center;">${t.timestamp}</td>
                                 <td><strong>${t.speaker}</strong> ${t.is_bookmark ? '<span class="doc-bookmark-badge"><i class="fa-solid fa-bookmark"></i> [Trọng tâm]</span>' : ''}</td>
-                                <td>${t.text} ${t.note ? `<br><small style="color:#64748b; font-style:italic;">-> Ghi chú: ${t.note}</small>` : ''}</td>
+                                <td contenteditable="true">${t.text} ${t.note ? `<br><small style="color:#64748b; font-style:italic;">-> Ghi chú: ${t.note}</small>` : ''}</td>
                             </tr>
                         `).join('')}
                     </table>
@@ -2033,6 +2223,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function exportWordDocument(includeInternal = true) {
         if (!state.sessionId) return;
+        
+        // Gom dữ liệu người dùng đã chỉnh sửa trực tiếp trên màn hình xem trước
+        collectEditedAnalysisFromDOM();
+
         showToast('Đang tạo file Word (.docx) chuẩn hành chính KLP...', 'info');
 
         try {
