@@ -868,7 +868,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Audio Recording Handler
+    // =========================================================================
+    // BỘ TỪ ĐIỂN CHUẨN HÓA DOANH NGHIỆP TỨC THÌ (KLP 0ms Instant Client Normalizer)
+    // Tự động sửa lỗi sai chính tả của Web Speech API: tên riêng, thương hiệu,
+    // model máy móc, thông số hóa lý pH, ORP, chức danh và số tiền tệ Kim Long Phát
+    // =========================================================================
+    function normalizeKlpSpeechText(text) {
+        if (!text || typeof text !== 'string') return text;
+        let s = text.trim();
+
+        // 1. Thương hiệu, Model máy móc & Thiết bị Kim Long Phát
+        s = s.replace(/\b(ion\s*pia|ionpia|i-on\s*pia|ai\s*on\s*pia)\b/gi, 'iONPIA');
+        s = s.replace(/\b(kim\s*long\s*ph[aá]t|klp)\b/gi, 'Kim Long Phát');
+        s = s.replace(/\b(spe\s*[\/\-]?\s*pem|spe\s*pem)\b/gi, 'SPE/PEM');
+        s = s.replace(/\b(kangen)\b/gi, 'Kangen');
+        s = s.replace(/\b(h2\s*portable|h2\s*potable)\b/gi, 'H2-Portable');
+        s = s.replace(/\b(ro\s*pro|klp\s*pure)\b/gi, 'KLP-Pure');
+        s = s.replace(/\b(fuji\s*smart|fujismart)\b/gi, 'Fuji Smart');
+        s = s.replace(/\b(trim\s*ion|trimion)\b/gi, 'Trim ion');
+        s = s.replace(/\b(panasonic)\b/gi, 'Panasonic');
+
+        // 2. Thuật ngữ Hóa lý, Nước Ion kiềm & Y tế
+        s = s.replace(/\b([đd]ộ\s*)?ph\s*([0-9]+([.,][0-9]+)?)\b/gi, 'độ pH $2');
+        s = s.replace(/\b([đd]ộ\s*)?ph\s*(chín|mười|tám|bảy)\s*(chấm|phẩy)\s*([0-9]+)\b/gi, (m, p1, p2, p3, p4) => {
+            const numMap = { 'chín': '9', 'mười': '10', 'tám': '8', 'bảy': '7' };
+            return `độ pH ${numMap[p2] || p2}.${p4}`;
+        });
+        s = s.replace(/\bph\b/g, 'pH');
+        s = s.replace(/\b(chỉ\s*số\s*)?orp\s*âm\b/gi, 'chỉ số ORP âm');
+        s = s.replace(/\b(khí\s*)?hydro\b/gi, 'Hydro');
+        s = s.replace(/\b(ion\s*kiềm)\b/gi, 'ion kiềm');
+        s = s.replace(/\b(điện\s*phân)\b/gi, 'điện phân');
+        s = s.replace(/\b(vi\s*khoáng)\b/gi, 'vi khoáng');
+
+        // 3. Dự án & Đối tác tiêu biểu
+        s = s.replace(/\b(nam\s*sài\s*gòn)\b/gi, 'Nam Sài Gòn');
+        s = s.replace(/\b(tân\s*phát\s*đạt)\b/gi, 'Tân Phát Đạt');
+
+        // 4. Ban Lãnh đạo & Nhân sự chủ chốt KLP
+        s = s.replace(/\b(bà|chị)?\s*phan\s*thị\s*phát\b/gi, 'Bà Phan Thị Phát');
+        s = s.replace(/\b(ông|anh)?\s*nguyễn\s*kim\s*long\b/gi, 'Ông Nguyễn Kim Long');
+        s = s.replace(/\b(ông|anh)?\s*trần\s*văn\s*hùng\b/gi, 'Ông Trần Văn Hùng');
+        s = s.replace(/\b(bà|chị)?\s*lê\s*thu\s*thảo\b/gi, 'Bà Lê Thu Thảo');
+        s = s.replace(/\b(ông|anh)?\s*đặng\s*minh\s*trí\b/gi, 'Ông Đặng Minh Trí');
+        s = s.replace(/\b(ông|anh)?\s*phạm\s*đức\s*huy\b/gi, 'Ông Phạm Đức Huy');
+        s = s.replace(/\b(bà|chị)?\s*nguyễn\s*mai\s*phương\b/gi, 'Bà Nguyễn Mai Phương');
+        s = s.replace(/\b(tổng\s*giám\s*đốc|tgđ)\b/gi, 'Tổng Giám đốc');
+        s = s.replace(/\b(phó\s*tổng\s*giám\s*đốc|ptgđ)\b/gi, 'Phó Tổng Giám đốc');
+        s = s.replace(/\b(chủ\s*tịch\s*hội\s*đồng\s*quản\s*trị|chủ\s*tịch\s*hđqt)\b/gi, 'Chủ tịch HĐQT');
+        s = s.replace(/\b(phòng\s*kinh\s*doanh)\b/gi, 'Phòng Kinh doanh');
+        s = s.replace(/\b(phòng\s*kỹ\s*thuật)\b/gi, 'Phòng Kỹ thuật');
+
+        // 5. Chuẩn hóa Số tiền, %, Ngày tháng
+        s = s.replace(/\b([0-9]+)\s*tỷ\s*rưỡi\b/gi, '$1,5 tỷ đồng');
+        s = s.replace(/\b([0-9]+)\s*triệu\s*rưỡi\b/gi, '$1,5 triệu đồng');
+        s = s.replace(/\b([0-9]+)\s*tỷ\b/gi, '$1 tỷ đồng');
+        s = s.replace(/\b([0-9]+)\s*triệu\b/gi, '$1 triệu đồng');
+        s = s.replace(/\b([0-9]+([.,][0-9]+)?)\s*(phần\s*trăm|%)\b/gi, '$1%');
+
+        // 6. Viết hoa ký tự đầu câu
+        if (s.length > 0) {
+            s = s.charAt(0).toUpperCase() + s.slice(1);
+        }
+        return s;
+    }
+
+    // Audio Recording Handler - Ghi âm & Bóc tách tiếng Việt chuẩn hóa KLP
     async function initRealAudioRecording() {
         if (!window.meetingRecorder) return;
 
@@ -907,17 +972,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Nhận diện giọng nói tiếng Việt trực tiếp (nhả chữ ngay lập tức, không trễ)
+        // Nhận diện giọng nói tiếng Việt trực tiếp - Chuẩn hóa từ điển KLP tức thì (0ms latency)
         window.meetingRecorder.onTranscriptCallback = async (text, isFinal) => {
             const speaker = state.currentActiveSpeaker || quickSpeakerSelect.value || state.chairperson || "Người phát biểu";
             if (!isFinal) {
-                // Đang nói -> nhả chữ tạm thời có con trỏ nhấp nháy
-                renderInterimLiveBubble(speaker, text);
+                // Đang nói -> nhả chữ tạm thời với con trỏ nhấp nháy và chuẩn hóa sơ bộ KLP
+                const interimText = normalizeKlpSpeechText(text);
+                renderInterimLiveBubble(speaker, interimText);
             } else {
-                // Dứt câu -> chốt câu thoại chính thức vào cột chữ thoại và gửi lên máy chủ
+                // Dứt câu -> chuẩn hóa toàn diện từ điển KLP và chốt vào cột chữ thoại
                 removeInterimLiveBubble();
                 if (text && text.trim()) {
-                    await sendTranscriptToServer(speaker, text.trim());
+                    const normalizedText = normalizeKlpSpeechText(text.trim());
+                    await sendTranscriptToServer(speaker, normalizedText);
                 }
             }
         };
