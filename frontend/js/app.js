@@ -340,11 +340,20 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('Không tải được config từ server:', e);
             // Default leaders
             state.availableLeaders = [
-                { name: "Bà Phan Thị Phát", role: "Tổng Giám Đốc" },
-                { name: "Ông Trần Văn Hùng", role: "Phó Tổng Giám Đốc" },
-                { name: "Ông Đặng Minh Trí", role: "Trưởng Phòng Kinh Doanh" },
-                { name: "Ông Phạm Đức Huy", role: "Trưởng Phòng Kỹ Thuật" },
-                { name: "Bà Nguyễn Mai Phương", role: "Kế toán Trưởng" }
+                { name: "Mr. Rạng", role: "MKT", selected: true },
+                { name: "Mr. Xuân", role: "MKT", selected: true },
+                { name: "Ms. Trúc", role: "MKT", selected: true },
+                { name: "Ms. Hân", role: "Truyền thông", selected: true },
+                { name: "Mr. Thành", role: "IT", selected: true },
+                { name: "Mr. Học", role: "Kinh Doanh", selected: true },
+                { name: "Mr. Thiên", role: "Kinh Doanh", selected: true },
+                { name: "Mr. Đoan", role: "Kinh doanh", selected: true },
+                { name: "Mr. Khôi", role: "Kỹ thuật", selected: true },
+                { name: "Ms. Trang", role: "CSKH", selected: true },
+                { name: "Mr. Thước", role: "HCNS", selected: true },
+                { name: "Sếp Trực", role: "TGĐ", selected: true },
+                { name: "Mr. Khiên", role: "Kỹ Thuật", selected: true },
+                { name: "Mr. Lam", role: "Tài xế", selected: true }
             ];
             renderParticipantsTags();
         }
@@ -354,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!participantsTags) return;
         participantsTags.innerHTML = '';
         state.availableLeaders.forEach((leader, idx) => {
-            const isSelected = leader.selected !== undefined ? leader.selected : (idx < 4);
+            const isSelected = leader.selected !== undefined ? leader.selected : true;
             leader.selected = isSelected;
 
             const pill = document.createElement('div');
@@ -519,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!activeSpeakerChips || !quickSpeakerSelect) return;
 
         const list = [];
-        const chair = (chairpersonInput && chairpersonInput.value.trim()) || state.chairperson || "Bà Phan Thị Phát (Tổng Giám Đốc)";
+        const chair = (chairpersonInput && chairpersonInput.value.trim()) || state.chairperson || "Sếp Trực - TGĐ";
         if (state.mode === 'option_1') {
             if (chair && !list.includes(chair)) list.push(chair);
         }
@@ -541,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        const sec = (secretaryInput && secretaryInput.value.trim()) || state.secretary || "Bà Lê Thu Thảo (Thư ký Ban TGĐ)";
+        const sec = (secretaryInput && secretaryInput.value.trim()) || state.secretary || "Ms. Trúc - MKT";
         if (sec && !list.includes(sec)) {
             list.push(sec);
         }
@@ -629,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Đã bỏ thông báo chuyển người phát biểu theo yêu cầu
         /*
         if (showNotice) {
-            showToast(`Đã chuyển người phát biểu: ${spkName}`, 'info');
+            // Đã bỏ thông báo chuyển người phát biểu
         }
         */
     }
@@ -664,6 +673,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (digit >= 1 && digit <= 9) pressedNum = digit;
         }
 
+        // Phím 0 đại diện cho người số 10
+        if (e.key === '0' || (e.code && e.code === 'Numpad0')) {
+            pressedNum = 10;
+        }
+
         if (pressedNum !== null) {
             if (!isEditable || e.altKey) {
                 const list = state.speakerList || [];
@@ -671,8 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (targetIdx >= 0 && targetIdx < list.length) {
                     e.preventDefault();
                     const targetSpeaker = list[targetIdx];
-                    setActiveSpeaker(targetSpeaker, true);
-                    showToast(`🎤 Đã chuyển phát biểu: [${pressedNum}] ${targetSpeaker}`, 'info', 1600);
+                    setActiveSpeaker(targetSpeaker, false); // Bỏ thông báo chuyển người
                 }
             }
         }
@@ -2039,7 +2052,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tr><td style="width:30%; background:#f4f4f5;"><strong>1. Thời gian & Hình thức:</strong></td><td contenteditable="true">${new Date().toLocaleDateString('vi-VN')} | ${state.audioSource === 'mic_only' ? 'Trực tiếp tại phòng họp' : 'Trực tiếp kết hợp Online Zoom'}</td></tr>
                         <tr><td style="background:#f4f4f5;"><strong>2. Chủ trì cuộc họp:</strong></td><td contenteditable="true">${state.chairperson}</td></tr>
                         <tr><td style="background:#f4f4f5;"><strong>3. Thư ký cuộc họp:</strong></td><td contenteditable="true">${state.secretary}</td></tr>
-                        <tr><td style="background:#f4f4f5;"><strong>4. Thành phần tham dự:</strong></td><td contenteditable="true">${(Array.isArray(state.participants) && state.participants.length > 0 ? state.participants : ['Bà Phan Thị Phát (Tổng Giám Đốc)', 'Ông Nguyễn Kim Long (Chủ tịch HĐQT)', 'Ông Trần Văn Hùng (Phó TGĐ)', 'Bà Lê Thu Thảo (Thư ký)']).join('<br>')}</td></tr>
+                        <tr><td style="background:#f4f4f5;"><strong>4. Thành phần tham dự:</strong></td><td contenteditable="true">${(Array.isArray(state.participants) && state.participants.length > 0 ? state.participants : ['Sếp Trực - TGĐ (Chủ trì)', 'Mr. Rạng - MKT', 'Mr. Xuân - MKT', 'Ms. Trúc - MKT', 'Ms. Hân - Truyền thông', 'Mr. Thành - IT', 'Mr. Học - Kinh Doanh', 'Mr. Thiên - Kinh Doanh', 'Mr. Đoan - Kinh doanh', 'Mr. Khôi - Kỹ thuật', 'Ms. Trang - CSKH', 'Mr. Thước - HCNS', 'Mr. Khiên - Kỹ Thuật', 'Mr. Lam - Tài xế']).join('<br>')}</td></tr>
                     </table>
 
                     <div class="section-heading">II. NỘI DUNG CHỈ ĐẠO & PHÂN TÍCH PHÁT BIỂU</div>

@@ -5,16 +5,20 @@ Hỗ trợ Custom Vocabulary cho Speech-to-Text và nhận diện thực thể (
 
 # Danh bạ Lãnh đạo & Nhân sự chủ chốt
 LEADERSHIP_MEMBERS = [
-    {"name": "Ông Nguyễn Kim Long", "role": "Chủ tịch Hội đồng Quản trị", "dept": "Ban Lãnh Đạo"},
-    {"name": "Bà Phan Thị Phát", "role": "Tổng Giám Đốc", "dept": "Ban Tổng Giám Đốc"},
-    {"name": "Ông Trần Văn Hùng", "role": "Phó Tổng Giám Đốc Phụ trách Vận hành & Dự án", "dept": "Ban TGĐ"},
-    {"name": "Bà Lê Thu Thảo", "role": "Thư ký Ban Tổng Giám Đốc", "dept": "Ban Thư ký"},
-    {"name": "Ông Vũ Hoàng Nam", "role": "Trưởng Ban Kế hoạch & Dự án", "dept": "Khối Dự Án"},
-    {"name": "Ông Đặng Minh Trí", "role": "Trưởng Phòng Kinh Doanh Toàn quốc", "dept": "Khối Kinh Doanh"},
-    {"name": "Bà Nguyễn Mai Phương", "role": "Kế toán Trưởng", "dept": "Phòng Tài chính - Kế toán"},
-    {"name": "Ông Phạm Đức Huy", "role": "Trưởng Phòng Kỹ thuật & Công nghệ", "dept": "Khối Kỹ Thuật"},
-    {"name": "Luật sư Hoàng Tuấn Anh", "role": "Trưởng Ban Pháp chế & Kiểm soát Tuân thủ", "dept": "Ban Pháp Chế"},
-    {"name": "Bà Đỗ Thị Bích", "role": "Giám đốc Nhân sự & Đào tạo", "dept": "Khối Nhân Sự"}
+    {"name": "Mr. Rạng", "role": "MKT", "dept": "Phòng MKT"},
+    {"name": "Mr. Xuân", "role": "MKT", "dept": "Phòng MKT"},
+    {"name": "Ms. Trúc", "role": "MKT", "dept": "Phòng MKT"},
+    {"name": "Ms. Hân", "role": "Truyền thông", "dept": "Phòng Truyền thông"},
+    {"name": "Mr. Thành", "role": "IT", "dept": "Phòng IT"},
+    {"name": "Mr. Học", "role": "Kinh Doanh", "dept": "Khối Kinh Doanh"},
+    {"name": "Mr. Thiên", "role": "Kinh Doanh", "dept": "Khối Kinh Doanh"},
+    {"name": "Mr. Đoan", "role": "Kinh doanh", "dept": "Khối Kinh Doanh"},
+    {"name": "Mr. Khôi", "role": "Kỹ thuật", "dept": "Phòng Kỹ thuật"},
+    {"name": "Ms. Trang", "role": "CSKH", "dept": "Phòng CSKH"},
+    {"name": "Mr. Thước", "role": "HCNS", "dept": "Phòng HCNS"},
+    {"name": "Sếp Trực", "role": "TGĐ", "dept": "Ban Tổng Giám Đốc"},
+    {"name": "Mr. Khiên", "role": "Kỹ Thuật", "dept": "Phòng Kỹ Thuật"},
+    {"name": "Mr. Lam", "role": "Tài xế", "dept": "Đội xe"}
 ]
 
 # Các phòng ban và khối chức năng

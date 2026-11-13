@@ -139,7 +139,7 @@ class DocxExporter:
 
         info_rows = [
             ("1. Thời gian & Hình thức:", f"Bắt đầu: {meeting_info.get('start_time', '09:00')} - Kết thúc: {meeting_info.get('end_time', datetime.now().strftime('%H:%M'))}, {datetime.now().strftime('%d/%m/%Y')} | Hình thức: {meeting_info.get('meeting_mode', 'Trực tiếp kết hợp Online Zoom')}"),
-            ("2. Chủ trì cuộc họp:", meeting_info.get("chairperson", "Bà Phan Thị Phát - Tổng Giám Đốc")),
+            ("2. Chủ trì cuộc họp:", meeting_info.get("chairperson", "Sếp Trực - TGĐ")),
             ("3. Thư ký cuộc họp:", meeting_info.get("secretary", "Bà Lê Thu Thảo - Thư ký Ban TGĐ")),
             ("4. Thành phần tham dự:", "\n".join(participants_list)),
             ("5. Vắng mặt (nếu có):", meeting_info.get("absentees", "Không có (Đầy đủ)"))
