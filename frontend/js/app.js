@@ -554,22 +554,32 @@ document.addEventListener('DOMContentLoaded', () => {
             state.currentActiveSpeaker = list[0];
         }
 
-        // Dropdown
+        state.speakerList = list;
+
+        // Dropdown có đánh số thứ tự [1], [2], [3]...
         quickSpeakerSelect.innerHTML = '';
-        list.forEach(spk => {
+        list.forEach((spk, idx) => {
+            const num = idx + 1;
             const opt = document.createElement('option');
             opt.value = spk;
-            opt.textContent = spk;
+            opt.textContent = `[${num}] ${spk}`;
             if (spk === state.currentActiveSpeaker) opt.selected = true;
             quickSpeakerSelect.appendChild(opt);
         });
 
-        // Chips for 1-click active speaker switching
+        // Chips for 1-click & phím tắt (1-9) active speaker switching
         activeSpeakerChips.innerHTML = '';
-        list.forEach(spk => {
+        list.forEach((spk, idx) => {
+            const num = idx + 1;
             const chip = document.createElement('div');
             chip.className = 'speaker-chip' + (spk === state.currentActiveSpeaker ? ' active' : '');
-            chip.innerHTML = `<i class="fa-solid fa-user"></i> <span>${spk}</span>`;
+            chip.setAttribute('data-speaker-index', num);
+            chip.title = `Bấm phím [${num}] hoặc Alt+[${num}] để chuyển nhanh`;
+            chip.innerHTML = `
+                <span class="speaker-num-badge">${num}</span>
+                <i class="fa-solid fa-user"></i>
+                <span class="speaker-chip-name">${spk}</span>
+            `;
             chip.addEventListener('click', () => {
                 setActiveSpeaker(spk, true);
             });
@@ -599,8 +609,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (activeSpeakerChips) {
             activeSpeakerChips.querySelectorAll('.speaker-chip').forEach(c => {
-                const span = c.querySelector('span');
-                if (span && span.textContent === spkName) {
+                const nameEl = c.querySelector('.speaker-chip-name');
+                if (nameEl && nameEl.textContent === spkName) {
                     c.classList.add('active');
                     try {
                         const chipLeft = c.offsetLeft;
@@ -629,6 +639,44 @@ document.addEventListener('DOMContentLoaded', () => {
             setActiveSpeaker(quickSpeakerSelect.value, true);
         });
     }
+
+    // =========================================================================
+    // PHÍM TẮT CHUYỂN NHANH NGƯỜI PHÁT BIỂU BẰNG PHÍM SỐ (1 -> 9, Numpad 1 -> 9)
+    // Khi đang trong phòng họp (Bước 2):
+    // - Bấm phím số 1..9 (khi không gõ chữ): chuyển người phát biểu ngay lập tức
+    // - Bấm Alt + 1..9 (khi đang gõ ghi chú): chuyển người phát biểu mà không cần rời ô gõ
+    // =========================================================================
+    document.addEventListener('keydown', (e) => {
+        if (state.currentStep !== 2) return;
+
+        const activeEl = document.activeElement;
+        const isEditable = activeEl && (
+            activeEl.tagName === 'INPUT' || 
+            activeEl.tagName === 'TEXTAREA' || 
+            activeEl.isContentEditable
+        );
+
+        let pressedNum = null;
+        if (e.key >= '1' && e.key <= '9') {
+            pressedNum = parseInt(e.key, 10);
+        } else if (e.code && e.code.startsWith('Numpad') && e.code.length === 7) {
+            const digit = parseInt(e.code.replace('Numpad', ''), 10);
+            if (digit >= 1 && digit <= 9) pressedNum = digit;
+        }
+
+        if (pressedNum !== null) {
+            if (!isEditable || e.altKey) {
+                const list = state.speakerList || [];
+                const targetIdx = pressedNum - 1;
+                if (targetIdx >= 0 && targetIdx < list.length) {
+                    e.preventDefault();
+                    const targetSpeaker = list[targetIdx];
+                    setActiveSpeaker(targetSpeaker, true);
+                    showToast(`🎤 Đã chuyển phát biểu: [${pressedNum}] ${targetSpeaker}`, 'info', 1600);
+                }
+            }
+        }
+    });
 
     // Step 1: Mode Switching
     modeOption1.addEventListener('click', () => {
